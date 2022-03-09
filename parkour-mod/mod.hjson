@@ -1,0 +1,8 @@
+name: "parkour-mod"
+displayName: "[orange]Parkour[] mod"
+author: "Benry/Deftry"
+description: "This mod adds some new movement mechanics, gravity and jump to player. WIP, report all bugs to Benry#6486"
+version: "1.0"
+minGameVersion: "135"
+dependencies: ["ui-lib"]
+hidden: true
