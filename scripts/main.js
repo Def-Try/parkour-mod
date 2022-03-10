@@ -38,7 +38,7 @@ var update = () => {
     }
     if (Core.input.keyTap(Binding.pause) && jump && stamina > 100) {jump = false; stamina = stamina - 100;}
     if ( (floorup != null && floorup.block() != Blocks.air) || (floordown != null && floordown.block() != Blocks.air) ) {
-
+        try{
         if (floorup.block() == Blocks.titaniumWallLarge || floordown.block() == Blocks.titaniumWallLarge) {
             if (gravity>0){
                 u.vel.add(0, -15);
@@ -68,6 +68,7 @@ var update = () => {
         }else{
             stamina = 1000;
         }
+        }catch (e){ Log.info("parkour-mod: " + e)}
     }
     if (floor != null && floor.block()) {
         if (floor.block() == Blocks.conveyor) {
