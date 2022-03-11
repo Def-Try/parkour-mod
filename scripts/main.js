@@ -3,13 +3,12 @@ Log.info("Started loading of parkour mechanics");
 Log.info("Loading ui-lib");
 const ui = require("ui-lib/library");
 ui.addButton("toggleparkour", "host", () => lock = !lock);
-Events.run(EventType.ClientLoadEvent, () => Vars.control.input.addLock(() => corruption));
 
 Log.info("Loading variables");
 var lock = true;
 var jump = false;
 var hold = false;
-var corruption = false;
+var corrupt = false;
 
 var gravity = -.5;
 var ograv = gravity;
@@ -28,7 +27,8 @@ var floor;
 Log.info("Loading main content");
 
 var updateHud = () => {
-    Vars.ui.showInfoToast("Stamina:" + stamina / 10 + "%", .02);
+    if (corrupt == false) Vars.ui.showInfoToast("Stamina:" + stamina / 10 + "%", .02);
+    if (corrupt) Vars.ui.showInfoToast("[scarlet]Corruption detected!", .02);
 };
 
 var equalsTop = (block) => floorup != null && floorup.block() == block;
@@ -123,22 +123,22 @@ var update = () => {
             gravity = 0;
             jumpvel = 0;
         } else if (floor.block() == Blocks.duct) {
-            Vars.ui.announce("[blue]Toggled parkour mode");
+            Vars.ui.announce("[#0099ff]Toggled parkour mode");
             lock = !lock;
         } else if (floor.block() == Blocks.conduit) {
-            corruption = true;
             if (Core.input.keyDown(KeyCode.a)) {
                 unit.vel.add(.5, 0);
             } else if (Core.input.keyDown(KeyCode.d)) {
                 unit.vel.add(-.5, 0);
             }
-            if (Math.random() * (10 - 0) > 5) {
+            if (Mathf.chance(.01)) {
                 unit.vel.add(Math.random() * (1 - -1), 0);
             }
+            corrupt = true;
         } else {
             gravity = ograv;
             jumpvel = ojv;
-            corruption = false;
+            corrupt = false;
         };
     }
     if ((floor = Vars.world.tile(lastx - 1, lasty)) != null && floor.block() != Blocks.air && stamina > 0 && Core.input.keyDown(Binding.pause)) {
@@ -153,11 +153,11 @@ var update = () => {
     if (stamina == 0) hold = false;
 };
 
-Log.info("Running task");
+Log.info("Running update task");
 Timer.schedule(() => {
     if (lock) return;
     update();
     updateHud();
 }, 0, .02);
 
-Log.info("Done");
+Log.info("Done initialisation of parkour-mod.");
