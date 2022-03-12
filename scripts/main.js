@@ -19,22 +19,45 @@ var stamina = 1000;
 var unit;
 var lastx = 0;
 var lasty = 0;
+var ltilex = 0;
+var ltiley = 0;
 
 var floorup;
 var floordown;
 var floor;
+var j;
+var lastvel = 0;
+
+var checked = {};
 
 Log.info("Loading main content");
 
 var updateHud = () => {
-    if (corrupt == false) Vars.ui.showInfoToast("Stamina:" + stamina / 10 + "%", .02);
-    if (corrupt) Vars.ui.showInfoToast("[scarlet]Corruption detected!", .02);
+    if (corrupt == false) Vars.ui.showInfoToast("Stamina:" + stamina / 10 + "%", .04);
+    if (corrupt) Vars.ui.showInfoToast("[scarlet]Corruption detected!", .04);
 };
 
 var equalsTop = (block) => floorup != null && floorup.block() == block;
 var equalsBot = (block) => floordown != null && floordown.block() == block;
 var equals = (block) => floor != null && floor.block() == block;
-
+var checkBlocks = (yrange, xoffset) => {
+    for (j = 0; j < yrange-1; j++){
+        floor = Vars.world.tile(unit.tileX() + xoffset, unit.tileY() - 1 + j);
+        if(floor != null && floor.block() != Blocks.air){
+            checked[j] = 1;
+        }else{
+            checked[j] = 0;
+        }
+    }
+    return checked;
+};
+var checkBlock = (block, yrange, xrange) => {
+    if(block != null && block.block() != Blocks.air){
+        return block.block();
+    }else{
+        return false;
+    }
+};
 var update = () => {
     unit = Vars.player.unit();
     if (unit == null) return;
@@ -60,18 +83,28 @@ var update = () => {
     if (!equalsTop(Blocks.air) || !equalsBot(Blocks.air)) {
         try {
             if (floorup.block() == Blocks.titaniumWallLarge || floordown.block() == Blocks.titaniumWallLarge) {
-                if (gravity > 0) {
-                    unit.vel.add(0, -15);
-                } else {
-                    unit.vel.add(0, 15);
+                if (ltiley == lasty){
+                    if (gravity > 0) {
+                        jumpvel = -15;
+                        ojv = -15;
+                    } else {
+                        jumpvel = 15;
+                        ojv = 15;
+                    }
+                }else{
+                    if (gravity > 0) {
+                        unit.vel.add(0, lasty - ltiley - 15);
+                    } else {
+                        unit.vel.add(0, ltiley - lasty + 15);
+                    }
                 }
-            } else if (floorup.block() == Blocks.copperWallLarge || floordown.block() == Blocks.copperWallLarge) {
-                if (gravity > 0) {
-                    jumpvel = -15;
-                    ojv = -15;
-                } else {
-                    jumpvel = 15;
-                    ojv = 15;
+            } else if (floorup.block() == Blocks.phaseWallLarge || floordown.block() == Blocks.phaseWallLarge) {
+                if (Core.input.keyDown(KeyCode.a)) {
+                    unit.vel.add(-0.5, 0);
+                    lastvel = unit.vel.x
+                } else if (Core.input.keyDown(KeyCode.d)) {
+                    unit.vel.add(0.5, 0);
+                    lastvel = unit.vel.x
                 }
             } else {
                 if (gravity > 0) {
@@ -81,12 +114,14 @@ var update = () => {
                     jumpvel = 10;
                     ojv = 10;
                 }
+                ltilex = unit.tileX();
+                ltiley = unit.tileY();
             }
             jump = true;
             stamina = Math.min(stamina + 50, 1000);
         } catch (e) { Log.info("parkour-mod: " + e) }
     }
-    if (floor != null && floor.block()) {
+    if (checkBlock(floor)) {
         if (floor.block() == Blocks.conveyor) {
             if (gravity > 0 && (floor = Vars.world.tile(lastx, lasty + 1)) != null && floor.block() != Blocks.air) {
                 jumpvel = 10;
@@ -140,17 +175,23 @@ var update = () => {
             jumpvel = ojv;
             corrupt = false;
         };
-    }
-    if ((floor = Vars.world.tile(lastx - 1, lasty)) != null && floor.block() != Blocks.air && stamina > 0 && Core.input.keyDown(Binding.pause)) {
-        stamina--;
-        hold = true;
-    } else if ((floor = Vars.world.tile(lastx + 1, lasty)) != null && floor.block() != Blocks.air && stamina > 0 && Core.input.keyDown(Binding.pause)) {
-        stamina--;
-        hold = true;
     } else {
-        hold = false;
+        gravity = ograv;
+        jumpvel = ojv;
+        corrupt = false;
     };
+    if ((checkBlocks(3, -1)[0] == 1 || checkBlock(Vars.world.tile(lastx - 1, lasty)) != false) && Core.input.keyDown(Binding.pause) && stamina > 0){
+        stamina--;
+        hold = true;
+    }else if ((checkBlocks(3, 1)[0] == 1 || checkBlock(Vars.world.tile(lastx + 1, lasty)) != false) && Core.input.keyDown(Binding.pause) && stamina > 0){
+        stamina--;
+        hold = true;
+    }else{
+        hold = false;
+    }
     if (stamina == 0) hold = false;
+    unit.vel.add(lastvel, 0);
+    if (lastvel > 0){lastvel -= 0.15}else{lastvel = 0}
 };
 
 Log.info("Running update task");
