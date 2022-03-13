@@ -27,6 +27,7 @@ var floordown;
 var floor;
 var j;
 var lastvel = 0;
+var entime = 0;
 
 var checked = {};
 
@@ -166,30 +167,32 @@ var update = () => {
             } else if (Core.input.keyDown(KeyCode.d)) {
                 unit.vel.add(-.5, 0);
             }
-            if (Mathf.chance(.01)) {
+            if (Mathf.chance((Time.time - entime) / 100000)) {
                 unit.vel.add(Math.random() * (1 - -1), 0);
             }
             corrupt = true;
+            if(entime == 0) entime = Time.time
         } else {
             gravity = ograv;
             jumpvel = ojv;
             corrupt = false;
+            entime = 0;
         };
     } else {
         gravity = ograv;
         jumpvel = ojv;
         corrupt = false;
     };
-    if ((checkBlocks(3, -1)[0] == 1 || checkBlock(Vars.world.tile(lastx - 1, lasty)) != false) && Core.input.keyDown(Binding.pause) && stamina > 0){
-        stamina--;
+    if ((checkBlocks(3, -1)[0] == 1 || checkBlock(Vars.world.tile(lastx - 1, lasty)) != false) && Core.input.keyDown(Binding.pause) && stamina > 0 && !corrupt){
+        stamina -= 50;
         hold = true;
-    }else if ((checkBlocks(3, 1)[0] == 1 || checkBlock(Vars.world.tile(lastx + 1, lasty)) != false) && Core.input.keyDown(Binding.pause) && stamina > 0){
-        stamina--;
+    }else if ((checkBlocks(3, 1)[0] == 1 || checkBlock(Vars.world.tile(lastx + 1, lasty)) != false) && Core.input.keyDown(Binding.pause) && stamina > 0 && !corrupt){
+        stamina -= 50;
         hold = true;
     }else{
         hold = false;
     }
-    if (stamina == 0) hold = false;
+    if (stamina <= 0) hold = false;
     unit.vel.add(lastvel, 0);
     if (lastvel > 0){lastvel -= 0.15}else{lastvel = 0}
 };
