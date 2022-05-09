@@ -20,7 +20,7 @@ GRAVITATIONAL FUNNEL - titanium conduit. Slowly pushes you in direction of condu
 ANTI GRAVITY FIELD - shock mines. Just disables gravity for you while in field.
 
 # How to play it on mobile?
-Sorry, but at this moment it's impossible. I'm still learning UI libs and I can't make mobile buttons.
+You have two buttons - one with server icon, other with "up" icon. Press "up" icon button to jump
 
 # WARNING!
 Please, do not toggle parkour in flying unit and/or don't let unit fall to the void(black tiles outside of map)! It crashes the game.
