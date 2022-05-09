@@ -25,7 +25,9 @@ var getTile = (x, y) => {var block = Vars.world.tile(x, y);if(block != null){ret
 var setGravity = (grav) => {gravity = grav; jump = -grav*10}
 var updateHud = () => {Vars.ui.showInfoToast("Выносливость:" + stamina / 10 + "%", .04);}
 
-if (Vars.mobile) ui.addButton("mobileJump", "up", () => if(stamina > 99 && onfloor){jump(bjumpvel+ajumpvel); stamina -= 100; });
+if (Vars.mobile) ui.addButton("mobileJump", "up", () => {
+    if(stamina > 99 && onfloor){jump(bjumpvel+ajumpvel); stamina -= 100; }
+});
 
 var getBlockBot = () => {
     if(gravdirect==0){return Vars.world.tile(lastx+1, lasty).block()}
