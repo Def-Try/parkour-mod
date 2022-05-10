@@ -28,6 +28,7 @@ var updateHud = () => {Vars.ui.showInfoToast("Выносливость:" + stami
 if (Vars.mobile) ui.addButton("mobileJump", "up", () => {
     if(stamina > 99 && onfloor){jump(bjumpvel+ajumpvel); stamina -= 100; }
 });
+if (Vars.mobile) ui.addButton("mobileHold", "download", wallHolding());
 
 var getBlockBot = () => {
     if(gravdirect==0){return Vars.world.tile(lastx+1, lasty).block()}
@@ -113,17 +114,21 @@ var gelStick = (unit) => {
         if(Core.input.keyTap(Binding.pause) && stamina > 99){unit.vel.add(0, 15);}
     }
 }
-var wallHolding = (unit) => {
+var wallHolding = () => {
     if(Core.input.keyDown(Binding.pause)){
         if(stamina>99){
             if(getBlock(lastx+1, lasty)!=false){
                 hold = true;
+                stamina -= 100;
             }else if(getBlock(lastx-1, lasty)!=false){
                 hold = true;
+                stamina -= 100;
             }else if(getBlock(lastx, lasty+1)!=false){
                 hold = true;
+                stamina -= 100;
             }else if(getBlock(lastx, lasty-1)!=false){
                 hold = true;
+                stamina -= 100;
             }
         }else{
             hold = false;
@@ -165,7 +170,7 @@ var update = () => { // главный цикл
         gravipad(unit);
         gelJump(unit);
         gelStick(unit);
-        wallHolding(unit);
+        wallHolding();
         graviFunnel(unit);
         antiGravField(unit);
         if(!hold) updateGravity();
