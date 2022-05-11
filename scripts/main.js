@@ -16,7 +16,7 @@ var bjumpvel = 15; // скорость прыжка
 var ajumpvel = 0; // доп. скорость прыжка
 var direction = 0; // 0 - Y, 1 - X
 var lock = true; // системная блокировка
-var stamina = 1000; // выносливость
+var stamina = 10000; // выносливость
 var onfloor = false; 
 var gravdirect = 3;
 var hold = false;
@@ -30,7 +30,7 @@ Log.info("Loading main content");
 var getBlock = (x, y) => {var block = Vars.world.tile(x, y);if(block != null && block.block() != Blocks.air){return block.block();}else{return false;}}
 var getTile = (x, y) => {var block = Vars.world.tile(x, y);if(block != null){return block;}else{return false;}}
 var setGravity = (grav) => {gravity = grav; jump = -grav*10}
-var updateHud = () => {Vars.ui.showInfoToast("Выносливость:" + stamina / 10 + "%", .04);}
+var updateHud = () => {Vars.ui.showInfoToast("Stamina:" + stamina / 100 + "%", .04);}
 
 if (Vars.mobile) ui.addButton("mobileJump", "up", () => {
     if(stamina > 99 && onfloor){jump(bjumpvel+ajumpvel); stamina -= 100; }
@@ -107,6 +107,10 @@ var gravityCenter = (unit) => {
                     mini = j
                 }
             }
+                if(gravdirect==0){unit.vel.add(gravity, 0);}
+                if(gravdirect==1){unit.vel.add(0, gravity);}
+                if(gravdirect==2){unit.vel.add(-gravity, 0);}
+                if(gravdirect==3){unit.vel.add(0, -gravity);}
             if (coordinates[mini].x < 0){ unit.vel.add(-gravity, 0); gravdirect=2;}
             if (coordinates[mini].x > 0){ unit.vel.add(gravity, 0); gravdirect=0;}
             if (coordinates[mini].y < 0){ unit.vel.add(0, -gravity); gravdirect=3;}
@@ -171,16 +175,16 @@ var wallHolding = () => {
         if(stamina>99){
             if(getBlock(lastx+1, lasty)!=false){
                 hold = true;
-                stamina -= 100;
+                stamina -= 10;
             }else if(getBlock(lastx-1, lasty)!=false){
                 hold = true;
-                stamina -= 100;
+                stamina -= 10;
             }else if(getBlock(lastx, lasty+1)!=false){
                 hold = true;
-                stamina -= 100;
+                stamina -= 10;
             }else if(getBlock(lastx, lasty-1)!=false){
                 hold = true;
-                stamina -= 100;
+                stamina -= 10;
             }
         }else{
             hold = false;
@@ -244,6 +248,6 @@ Timer.schedule(() => {
 Timer.schedule(() => {
     if(lock) return;
     if(!hold && mode==1) gravityCenter(unit);
-}, 0, .1);
+}, 0, .02);
 
 Log.info("Done initialisation of parkour-mod.");
