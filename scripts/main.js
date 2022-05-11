@@ -3,6 +3,12 @@ Log.info("Started loading of parkour mechanics");
 Log.info("Loading ui-lib");
 const ui = require("ui-lib/library");
 ui.addButton("toggleparkour", "host", () => lock = !lock);
+ui.addButton("toggleparkourmode", "grid", () => {
+    if(mode){
+        mode=0; Vars.ui.announce("Parkour mode")
+    }else{
+        Vars.ui.showCustomConfirm("IN DEVELOPMENT!", "You trying to select [accent]Planet[] mode, but it is still buggy and in very development.", "Turn this thing on!", "Back", () => {mode=1; Vars.ui.announce("Planet mode")}, () => {mode=0; Vars.ui.announce("Parkour mode")})
+    }});
 
 Log.info("Loading variables");
 var gravity = .5; // скорость гравитации
@@ -19,6 +25,7 @@ var lasty;
 var ltilex;
 var ltiley;
 var unit;
+var mode = 0; // 0 - обычный, 1 - центр тяжести
 Log.info("Loading main content");
 var getBlock = (x, y) => {var block = Vars.world.tile(x, y);if(block != null && block.block() != Blocks.air){return block.block();}else{return false;}}
 var getTile = (x, y) => {var block = Vars.world.tile(x, y);if(block != null){return block;}else{return false;}}
@@ -75,6 +82,39 @@ var gravipad = (unit) => {
         }
     } 
 }
+
+var gravityCenter = (unit) => {
+    let coordinates = [];
+    let distances = [];
+    let nolock = false;
+    if(!onfloor){
+        for(let y = -15; y < 16; y++){
+            for(let i = -15; i < 16; i++){
+                if(getBlock(lastx+i, lasty+y)==Blocks.thoriumWall){
+                    coordinates.push({x: i, y: y});
+                    nolock = true;
+                }
+            }
+        }
+        if(nolock){
+            for (let j = 0; j < coordinates.length; j++){
+                var dist = Math.sqrt(((lastx + coordinates[j].x - lastx) ^ 2) + ((lasty + coordinates[j].y - lasty) ^ 2));
+                distances.push( dist );
+            }
+            let mini = 0;
+            for (let j = 0; j < distances.length; j++){
+                if (distances[j] < distances[mini]){
+                    mini = j
+                }
+            }
+            if (coordinates[mini].x < 0){ unit.vel.add(-gravity, 0); gravdirect=2;}
+            if (coordinates[mini].x > 0){ unit.vel.add(gravity, 0); gravdirect=0;}
+            if (coordinates[mini].y < 0){ unit.vel.add(0, -gravity); gravdirect=3;}
+            if (coordinates[mini].y > 0){ unit.vel.add(0, gravity); gravdirect=1;}
+        }
+    }
+}
+
 var gelJump = (unit) => {
     lastx = unit.tileX();
     lasty = unit.tileY();
@@ -112,6 +152,18 @@ var gelStick = (unit) => {
     }else if(getBlock(lastx, lasty-1)==Blocks.plastaniumWall){
         hold = true;
         if(Core.input.keyTap(Binding.pause) && stamina > 99){unit.vel.add(0, 15);}
+    }else if(getBlock(lastx-1, lasty-1)==Blocks.plastaniumWall){
+        hold = true;
+        if(Core.input.keyTap(Binding.pause) && stamina > 99){unit.vel.add(15, 15);}
+    }else if(getBlock(lastx+1, lasty-1)==Blocks.plastaniumWall){
+        hold = true;
+        if(Core.input.keyTap(Binding.pause) && stamina > 99){unit.vel.add(-15, 15);}
+    }else if(getBlock(lastx+1, lasty+1)==Blocks.plastaniumWall){
+        hold = true;
+        if(Core.input.keyTap(Binding.pause) && stamina > 99){unit.vel.add(-15, -15);}
+    }else if(getBlock(lastx-1, lasty+1)==Blocks.plastaniumWall){
+        hold = true;
+        if(Core.input.keyTap(Binding.pause) && stamina > 99){unit.vel.add(15, -15);}
     }
 }
 var wallHolding = () => {
@@ -173,7 +225,7 @@ var update = () => { // главный цикл
         wallHolding();
         graviFunnel(unit);
         antiGravField(unit);
-        if(!hold) updateGravity();
+        if(!hold && mode==0) updateGravity();
     }catch(e){
         Log.info("parkour-mod: " + e + ". Maybe you in the void?")
     }
@@ -188,5 +240,10 @@ Timer.schedule(() => {
     updateHud();
     updateFloor();
 }, 0, .02);
+
+Timer.schedule(() => {
+    if(lock) return;
+    if(!hold && mode==1) gravityCenter(unit);
+}, 0, .1);
 
 Log.info("Done initialisation of parkour-mod.");
