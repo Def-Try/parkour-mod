@@ -9,6 +9,22 @@ ui.addButton("toggleparkourmode", "grid", () => {
     }else{
         Vars.ui.showCustomConfirm("IN DEVELOPMENT!", "You trying to select [accent]Planet[] mode, but it is still buggy and in very development.", "Turn this thing on!", "Back", () => {mode=1; Vars.ui.announce("Planet mode")}, () => {mode=0; Vars.ui.announce("Parkour mode")})
     }});
+Events.on(ClientLoadEvent, () => {
+    var table = new Table();
+
+    if (Vars.mobile) { 
+        let jbtn = TextButton("Jump");
+        table.add(jbtn).padLeft(6);
+        jbtn.clicked(() => {if(stamina > 99 && onfloor){jump(bjumpvel+ajumpvel); stamina -= 100; }});
+        jbtn.width = 31 * 4
+        Vars.ui.hudGroup.addChild(jbtn)
+    };
+    let hbtn = TextButton("Hold");
+    table.add(hbtn).padLeft(6);
+    hbtn.clicked(() => {holding = !holding;});
+    hbtn.width = 31 * 4
+    Vars.ui.hudGroup.addChild(hbtn)
+});
 
 Log.info("Loading variables");
 var gravity = .5; // скорость гравитации
@@ -26,16 +42,15 @@ var ltilex;
 var ltiley;
 var unit;
 var mode = 0; // 0 - обычный, 1 - центр тяжести
+var holding = false;
 Log.info("Loading main content");
+
 var getBlock = (x, y) => {var block = Vars.world.tile(x, y);if(block != null && block.block() != Blocks.air){return block.block();}else{return false;}}
 var getTile = (x, y) => {var block = Vars.world.tile(x, y);if(block != null){return block;}else{return false;}}
 var setGravity = (grav) => {gravity = grav; jump = -grav*10}
 var updateHud = () => {Vars.ui.showInfoToast("Stamina:" + stamina / 100 + "%", .04);}
 
-if (Vars.mobile) ui.addButton("mobileJump", "up", () => {
-    if(stamina > 99 && onfloor){jump(bjumpvel+ajumpvel); stamina -= 100; }
-});
-if (Vars.mobile) ui.addButton("mobileHold", "download", wallHolding());
+//region util functions
 
 var getBlockBot = () => {
     if(gravdirect==0){return Vars.world.tile(lastx+1, lasty).block()}
@@ -45,13 +60,13 @@ var getBlockBot = () => {
 }
 var updateFloor = () => { 
     if(gravdirect == 0){
-        if(getBlock(lastx+1, lasty).solid){ if(stamina<1000){stamina += 100}else{stamina=1000}; onfloor = true; ltilex = lastx; ltiley = lasty;}else{onfloor=false;}
+        if(getBlock(lastx+1, lasty).solid){ if(stamina<10000){stamina += 100}else{stamina=10000}; onfloor = true; ltilex = lastx; ltiley = lasty;}else{onfloor=false;}
     }else if(gravdirect == 2){
-        if(getBlock(lastx-1, lasty).solid){ if(stamina<1000){stamina += 100}else{stamina=1000}; onfloor = true; ltilex = lastx; ltiley = lasty;}else{onfloor=false;}
+        if(getBlock(lastx-1, lasty).solid){ if(stamina<10000){stamina += 100}else{stamina=10000}; onfloor = true; ltilex = lastx; ltiley = lasty;}else{onfloor=false;}
     }else if(gravdirect == 1){
-        if(getBlock(lastx, lasty+1).solid){ if(stamina<1000){stamina += 100}else{stamina=1000}; onfloor = true; ltilex = lastx; ltiley = lasty;}else{onfloor=false;}
+        if(getBlock(lastx, lasty+1).solid){ if(stamina<10000){stamina += 100}else{stamina=10000}; onfloor = true; ltilex = lastx; ltiley = lasty;}else{onfloor=false;}
     }else{
-        if(getBlock(lastx, lasty-1).solid){ if(stamina<1000){stamina += 100}else{stamina=1000}; onfloor = true; ltilex = lastx; ltiley = lasty;}else{onfloor=false;}
+        if(getBlock(lastx, lasty-1).solid){ if(stamina<10000){stamina += 100}else{stamina=10000}; onfloor = true; ltilex = lastx; ltiley = lasty;}else{onfloor=false;}
     }
 }
 var updateGravity = () => {
@@ -66,7 +81,9 @@ var jump = (vel) => {
     if(gravdirect==2){unit.vel.add(vel, 0);}
     if(gravdirect==3){unit.vel.add(0, vel);}
 }
-//ЭТОТ РЕГИОН ДЛЯ ФУНКЦИЙ МЕХАНИК!
+
+//endregion
+//region mechanics
 var gravipad = (unit) => {
     lastx = unit.tileX();
     lasty = unit.tileY();
@@ -87,7 +104,7 @@ var gravityCenter = (unit) => {
     let coordinates = [];
     let distances = [];
     let nolock = false;
-    if(!onfloor){
+    if(!onfloor && !hold){
         for(let y = -15; y < 16; y++){
             for(let i = -15; i < 16; i++){
                 if(getBlock(lastx+i, lasty+y)==Blocks.thoriumWall){
@@ -107,14 +124,10 @@ var gravityCenter = (unit) => {
                     mini = j
                 }
             }
-                if(gravdirect==0){unit.vel.add(gravity, 0);}
-                if(gravdirect==1){unit.vel.add(0, gravity);}
-                if(gravdirect==2){unit.vel.add(-gravity, 0);}
-                if(gravdirect==3){unit.vel.add(0, -gravity);}
-            if (coordinates[mini].x < 0){ unit.vel.add(-gravity, 0); gravdirect=2;}
-            if (coordinates[mini].x > 0){ unit.vel.add(gravity, 0); gravdirect=0;}
-            if (coordinates[mini].y < 0){ unit.vel.add(0, -gravity); gravdirect=3;}
-            if (coordinates[mini].y > 0){ unit.vel.add(0, gravity); gravdirect=1;}
+            if (coordinates[mini].x < 0 && gravdirect != 3 || gravdirect != 1){ unit.vel.add(-gravity, 0); gravdirect=2;}
+            if (coordinates[mini].x > 0 && gravdirect != 3 || gravdirect != 1){ unit.vel.add(gravity, 0); gravdirect=0;}
+            if (coordinates[mini].y < 0 && gravdirect != 2 || gravdirect != 0){ unit.vel.add(0, -gravity); gravdirect=3;}
+            if (coordinates[mini].y > 0 && gravdirect != 2 || gravdirect != 0){ unit.vel.add(0, gravity); gravdirect=1;}
         }
     }
 }
@@ -171,7 +184,7 @@ var gelStick = (unit) => {
     }
 }
 var wallHolding = () => {
-    if(Core.input.keyDown(Binding.pause)){
+    if (holding) {
         if(stamina>99){
             if(getBlock(lastx+1, lasty)!=false){
                 hold = true;
@@ -215,14 +228,14 @@ var antiGravField = (unit) => {
     } 
 }
 
-//конец региона механик
+//endregion
 var update = () => { // главный цикл
     unit = Vars.player.unit();
     if (unit == null) return;
     try{
         lastx = unit.tileX();
         lasty = unit.tileY();
-        if(Core.input.keyTap(Binding.pause) && stamina > 99 && onfloor){jump(bjumpvel+ajumpvel); stamina -= 100; } // работа прыжка
+        if(Core.input.keyDown(Binding.pause) && stamina > 99 && onfloor){jump(bjumpvel+ajumpvel); stamina -= 100; } // работа прыжка
         gravipad(unit);
         gelJump(unit);
         gelStick(unit);
@@ -231,11 +244,9 @@ var update = () => { // главный цикл
         antiGravField(unit);
         if(!hold && mode==0) updateGravity();
     }catch(e){
-        Log.info("parkour-mod: " + e + ". Maybe you in the void?")
+        Log.err("parkour-mod: " + e + ". Maybe you in the void?")
     }
     hold = false;
-    
-
 };
 Log.info("Running update task");
 Timer.schedule(() => {
@@ -243,11 +254,10 @@ Timer.schedule(() => {
     update();
     updateHud();
     updateFloor();
+    if(!hold && mode==1) gravityCenter(unit);
 }, 0, .02);
 
 Timer.schedule(() => {
-    if(lock) return;
-    if(!hold && mode==1) gravityCenter(unit);
 }, 0, .02);
 
 Log.info("Done initialisation of parkour-mod.");
