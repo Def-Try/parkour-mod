@@ -1,29 +1,34 @@
+var indev = true;
+
 Log.info("Started loading of parkour mechanics");
-
-Log.info("Loading ui-lib");
-const ui = require("ui-lib/library");
-ui.addButton("toggleparkour", "host", () => lock = !lock);
-ui.addButton("toggleparkourmode", "grid", () => {
-    if(mode){
-        mode=0; Vars.ui.announce("Parkour mode")
-    }else{
-        Vars.ui.showCustomConfirm("IN DEVELOPMENT!", "You trying to select [accent]Planet[] mode, but it is still buggy and in very development.", "Turn this thing on!", "Back", () => {mode=1; Vars.ui.announce("Planet mode")}, () => {mode=0; Vars.ui.announce("Parkour mode")})
-    }});
+Log.info("Loading ui elements");
 Events.on(ClientLoadEvent, () => {
-    var table = new Table();
-
-    if (Vars.mobile) { 
+    var table = new Table().bottom().left();
+    var tablem = new Table().bottom().left();
+    table.background(Tex.buttonEdge3);
+    table.defaults().size(100, 62);
+    table.x = 124+10
+    tablem.defaults().size(124, 62)
+    if (Vars.mobile || indev) { 
         let jbtn = TextButton("Jump");
-        table.add(jbtn).padLeft(6);
+        table.add(jbtn).padRight(6);
         jbtn.clicked(() => {if(stamina > 99 && onfloor){jump(bjumpvel+ajumpvel); stamina -= 100; }});
-        jbtn.width = 31 * 4
-        Vars.ui.hudGroup.addChild(jbtn)
     };
     let hbtn = TextButton("Hold");
+    let ebtn = TextButton("Enable Parkour Mode");
+    let cbtn = TextButton("Change Mode");
+    table.add(cbtn).padLeft(6);
+    cbtn.clicked(() => {if(mode){mode=0; Vars.ui.announce("Parkour mode")}else{Vars.ui.showCustomConfirm("IN DEVELOPMENT!", "You trying to select [accent]Planet[] mode, but it is still buggy and in very development.", "Turn this thing on!", "Back", () => {mode=1; Vars.ui.announce("Planet mode")}, () => {mode=0; Vars.ui.announce("Parkour mode")})}});
     table.add(hbtn).padLeft(6);
     hbtn.clicked(() => {holding = !holding;});
-    hbtn.width = 31 * 4
-    Vars.ui.hudGroup.addChild(hbtn)
+    tablem.add(ebtn).padLeft(6);
+    ebtn.clicked(() => {lock = !lock;ebtn.setText(!lock ? "Disable Parkour mod" : "Enable parkour mod")});
+    table.visibility = () => {
+        if (!lock) return true;
+        return false;
+    };
+    Vars.ui.hudGroup.addChild(tablem);
+    Vars.ui.hudGroup.addChild(table);
 });
 
 Log.info("Loading variables");
@@ -124,10 +129,10 @@ var gravityCenter = (unit) => {
                     mini = j
                 }
             }
-            if (coordinates[mini].x < 0 && gravdirect != 3 || gravdirect != 1){ unit.vel.add(-gravity, 0); gravdirect=2;}
-            if (coordinates[mini].x > 0 && gravdirect != 3 || gravdirect != 1){ unit.vel.add(gravity, 0); gravdirect=0;}
-            if (coordinates[mini].y < 0 && gravdirect != 2 || gravdirect != 0){ unit.vel.add(0, -gravity); gravdirect=3;}
-            if (coordinates[mini].y > 0 && gravdirect != 2 || gravdirect != 0){ unit.vel.add(0, gravity); gravdirect=1;}
+            if (coordinates[mini].x < 0 && gravdirect != 3 && gravdirect != 1){ unit.vel.add(-gravity, 0); gravdirect=2;}
+            if (coordinates[mini].x > 0 && gravdirect != 3 && gravdirect != 1){ unit.vel.add(gravity, 0); gravdirect=0;}
+            if (coordinates[mini].y < 0 && gravdirect != 2 && gravdirect != 0){ unit.vel.add(0, -gravity); gravdirect=3;}
+            if (coordinates[mini].y > 0 && gravdirect != 2 && gravdirect != 0){ unit.vel.add(0, gravity); gravdirect=1;}
         }
     }
 }
@@ -235,7 +240,7 @@ var update = () => { // главный цикл
     try{
         lastx = unit.tileX();
         lasty = unit.tileY();
-        if(Core.input.keyDown(Binding.pause) && stamina > 99 && onfloor){jump(bjumpvel+ajumpvel); stamina -= 100; } // работа прыжка
+        if(Core.input.keyTap(Binding.pause) && stamina > 99 && onfloor){jump(bjumpvel+ajumpvel); stamina -= 100; } // работа прыжка
         gravipad(unit);
         gelJump(unit);
         gelStick(unit);
