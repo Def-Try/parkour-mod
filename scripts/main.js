@@ -176,22 +176,17 @@ let updateFloor = () => { // проверяет на наличие юнита �
     };
 };
 
-let updateGravity = () => { // тянет юнита вниз по направлению гравитации
-    switch(gravdirect) {
-        case 0: {unit.vel.add(gravity, 0);}
-        case 1: {unit.vel.add(0, gravity);}
-        case 2: {unit.vel.add(-gravity, 0);}
-        case 3: {unit.vel.add(0, -gravity);}
-    }
+var updateGravity = () => { // гравитация
+    if(gravdirect==0){unit.vel.add(gravity, 0);}
+    if(gravdirect==1){unit.vel.add(0, gravity);}
+    if(gravdirect==2){unit.vel.add(-gravity, 0);}
+    if(gravdirect==3){unit.vel.add(0, -gravity);}
 }
-
-let jump = (vel) => { // тянет юнита вверх по направлению гравитации
-        switch(gravdirect) {
-        case 0: {unit.vel.add(-vel, 0);}
-        case 1: {unit.vel.add(0, -vel);}
-        case 2: {unit.vel.add(vel, 0);}
-        case 3: {unit.vel.add(0, vel);}
-    }
+var jump = (vel) => { // прыжок
+    if(gravdirect==0){unit.vel.add(-vel, 0);}
+    if(gravdirect==1){unit.vel.add(0, -vel);}
+    if(gravdirect==2){unit.vel.add(vel, 0);}
+    if(gravdirect==3){unit.vel.add(0, vel);}
 };
 
 //endregion
@@ -384,6 +379,12 @@ var update = () => { // главный цикл
         Vars.ui.announce("Неизвестная ошибка была поймана")
         lock = true
     };
+    if(!hold && mode==0) { 
+        updateGravity();
+    };
+    if(!hold && mode == 1) {
+        gravityCenter(unit);
+    };
 
     hold = false;
 };
@@ -397,12 +398,6 @@ Timer.schedule(() => {
     update();
     updateHud();
     updateFloor();
-	if(!hold && mode==0) { 
-            updateGravity();
-    };
-    if(!hold && mode == 1) {
-        gravityCenter(unit);
-    };
 }, 0, .02);
 
 
