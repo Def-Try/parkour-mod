@@ -3,8 +3,7 @@
 
 let indev = true; // сделать true для доступа ко всяким штучкам девелоперов
 
-Log.info("Started loading of parkour mechanics");
-Log.info("Loading ui elements");
+Log.info("parkour-mod: Creating ui elements");
 
 Events.on(ClientLoadEvent, () => {
 
@@ -14,7 +13,7 @@ Events.on(ClientLoadEvent, () => {
     let hbtn = TextButton("Hold");
     hbtn.visibility = () => {return !lock;};
     let ebtn = TextButton("Enable Parkour Mode");
-    tablem.y = basebuttonh
+    ebtn.y = basebuttonh
     let cbtn = TextButton("Change Mode");
     cbtn.visibility = () => {return !lock;};
     
@@ -43,11 +42,10 @@ Events.on(ClientLoadEvent, () => {
     table.add(hbtn).size(basebuttonw, basebuttonh).padLeft(6);
     hbtn.clicked(() => { holding = !holding;});
 
-    Vars.ui.hudGroup.addChild(tablem);
     Vars.ui.hudGroup.addChild(table);
 });
 
-Log.info("Loading variables");
+Log.info("parkour-mod: Creating variables");
 
 let gravity = .5; // скорость гравитации
 let bjumpvel = 15; // скорость прыжка
@@ -66,7 +64,7 @@ let unit; // переменная для хранения юнита
 let mode = 0; // 0 - обычный, 1 - режим планеты
 let holding = false; // держится ли юнит на стене
 
-Log.info("Loading main content");
+Log.info("parkour-mod: Loading main content");
 
 let getBlock = (x, y) => { // получить блок по координатам - возвращает блок по координатам, либо false если там его нету
     var block = Vars.world.tile(x, y);
@@ -381,10 +379,6 @@ var update = () => { // главный цикл
         wallHolding();
         graviFunnel(unit);
         antiGravField(unit);
-        
-        if(!hold && mode==0) { 
-            updateGravity();
-        };
     } catch(e){
         Log.err("parkour-mod: " + e)
         Vars.ui.announce("Неизвестная ошибка была поймана")
@@ -394,7 +388,7 @@ var update = () => { // главный цикл
     hold = false;
 };
 
-Log.info("Running update task");
+Log.info("parkour-mod: Running update task");
 Timer.schedule(() => {
     if (lock) { 
         return
@@ -403,11 +397,13 @@ Timer.schedule(() => {
     update();
     updateHud();
     updateFloor();
-
+	if(!hold && mode==0) { 
+            updateGravity();
+    };
     if(!hold && mode == 1) {
         gravityCenter(unit);
     };
 }, 0, .02);
 
 
-Log.info("Done initialisation of parkour-mod.");
+Log.info("parkour-mod: Successful init");
