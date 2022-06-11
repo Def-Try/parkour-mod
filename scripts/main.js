@@ -10,38 +10,36 @@ Events.on(ClientLoadEvent, () => {
     let basebuttonw = 150; // ширина кнопок
     let basebuttonh = basebuttonw / 2; // высота кнопок
     var table = new Table().bottom().left(); // таблица с кнопками
-    let hbtn = TextButton("Hold");
-    hbtn.visibility = () => {return !lock;};
-    let ebtn = TextButton("Enable Parkour Mode");
-    ebtn.y = basebuttonh
-    let cbtn = TextButton("Change Mode");
-    cbtn.visibility = () => {return !lock;};
-    
-    table.add(ebtn).size(basebuttonw, basebuttonh).padLeft(6);
-    ebtn.clicked(() => {
-        lock = !lock;
-        ebtn.setText(!lock ? "Disable Parkour mod" : "Enable parkour mod");
-        ebtn.y = !lock ? 0 : basebuttonh;
-    });
-    table.add(cbtn).size(basebuttonw, basebuttonh).padLeft(6);
-    cbtn.clicked(() => {if(mode) {mode=0; Vars.ui.announce("Parkour mode")} else {Vars.ui.showCustomConfirm("IN DEVELOPMENT!", "You trying to select [accent]Planet[] mode, but it is still buggy and in very development.", "Turn this thing on!", "Back", () => {mode=1; Vars.ui.announce("Planet mode");}, () => {mode=0; Vars.ui.announce("Parkour mode");});};});
-    // ^^^ код не изменится пока не будет готов планет режим
-    if (Vars.mobile || indev) { 
-        let jbtn = TextButton("Jump");
-        jbtn.visibility = () => {return !lock;};
-        table.add(jbtn).size(basebuttonw, basebuttonh).padLeft(6);
+
+    table.table(Styles.black5, cons(t => {
+        t.background(Tex.buttonEdge3);
+        let ebtn = TextButton("Enable Parkour Mod");
+        let dbtn = TextButton("Disable Parkour Mod");
+        dbtn.y = basebuttonh;
+        if(Vars.mobile || indev){
+            let jbtn = TextButton("Jump");
+            jbtn.visibility = () => {return !lock;}
+            jbtn.clicked(() => { if((stamina > 99) && onfloor) { jump(bjumpvel + ajumpvel); stamina -= 100; }; });
+        }
+        let hbtn = TextButton("Hold");
+        let cbtn = TextButton("Change mode");
+
+        ebtn.clicked(() => { lock = false; });
+        dbtn.clicked(() => { lock = true; });
+        hbtn.clicked(() => { holding = !holding; });
+        cbtn.clicked(() => {if(mode) {mode=0; Vars.ui.announce("Parkour mode")} else {Vars.ui.showCustomConfirm("IN DEVELOPMENT!", "You trying to select [accent]Planet[] mode, but it is still buggy and in very development.", "Turn this thing on!", "Back", () => {mode=1; Vars.ui.announce("Planet mode");}, () => {mode=0; Vars.ui.announce("Parkour mode");});};});
         
-        jbtn.clicked(() => {
-            if((stamina > 99) && onfloor) { 
-                jump(bjumpvel + ajumpvel); 
-                stamina -= 100; 
-            };
-        });
-    };
-
-    table.add(hbtn).size(basebuttonw, basebuttonh).padLeft(6);
-    hbtn.clicked(() => { holding = !holding;});
-
+        ebtn.visibility = () => {return lock;}
+        dbtn.visibility = () => {return !lock;}
+        hbtn.visibility = () => {return !lock;}
+        cbtn.visibility = () => {return !lock;}
+        //t.size(basebuttonw * (3 + (Vars.mobile ? 0 : 1)), basebuttonh * 2)
+        t.add(ebtn).size(basebuttonw, basebuttonh).padLeft(6);
+        t.add(dbtn).size(basebuttonw, basebuttonh).padLeft(6);
+        if(Vars.mobile){t.add(jbtn).size(basebuttonw, basebuttonh).padLeft(6);}
+        t.add(hbtn).size(basebuttonw, basebuttonh).padLeft(6);
+        t.add(cbtn).size(basebuttonw, basebuttonh).padLeft(6);
+    }));
     Vars.ui.hudGroup.addChild(table);
 });
 
