@@ -1,3 +1,4 @@
+
 /*
  *  by Deftry, ADI and TheEE
  */
@@ -15,12 +16,18 @@ Events.on(ClientLoadEvent,() => {
 
     // ebtn
     // cbtn jbtn hbtn
-    var table = new Table().bottom().left();
-    var tablem = new Table().bottom().left();
-    let hbtn = TextButton("Hold");
-    let ebtn = TextButton("Enable Parkour Mode");
-    tablem.y = basebuttonh
-    let cbtn = TextButton("Change Mode");
+    
+    const
+        tablem = new Table().bottom().left() ,
+        table = new Table().bottom().left() ;
+    
+    let 
+        ebtn = TextButton('Enable Parkour Mode') ,
+        hbtn = TextButton('Hold') ;
+    
+    tablem.y = basebuttonh;
+    
+    let cbtn = TextButton('Change Mode');
     
     tablem
     .add(ebtn)
@@ -116,7 +123,7 @@ let holding = false;
 Log.info('Loading main content');
 
 
-let getBlock = (x, y) => {
+const getBlock = (x, y) => {
     var block = Vars.world.tile(x, y);
     if(block != null && block.block() != Blocks.air) {
         return block.block();
@@ -125,7 +132,7 @@ let getBlock = (x, y) => {
     };
 };
 
-let getTile = (x, y) => {
+const getTile = (x, y) => {
     var block = Vars.world.tile(x, y);
     if(block != null) {
         return block;
@@ -134,18 +141,18 @@ let getTile = (x, y) => {
     };
 };
 
-let setGravity = (grav) => {
+const setGravity = (grav) => {
     gravity = grav; 
     jump = -grav * 10
 };
 
-let updateHud = () => {
+const updateHud = () => {
     Vars.ui.showInfoToast("Stamina:" + stamina / 100 + "%", .04);
 };
 
 //region util functions
 
-let getBlockBot = () => {
+const getBlockBot = () => {
     switch(gravdirect) {
         case 0: {
             return Vars.world.tile(lastx + 1, lasty).block();
@@ -165,7 +172,7 @@ let getBlockBot = () => {
     };
 };
 
-let updateFloor = () => { 
+const updateFloor = () => { 
     if(gravdirect == 0) {
         if(getBlock(lastx + 1, lasty).solid) { 
             if(stamina < 10000) {
@@ -229,7 +236,7 @@ let updateFloor = () => {
     };
 };
 
-let updateGravity = () => {
+const updateGravity = () => {
     if(gravdirect == 0) {
         unit.vel.add(gravity, 0);
     };
@@ -247,7 +254,7 @@ let updateGravity = () => {
     };
 }
 
-let jump = (vel) => {
+const jump = (vel) => {
     if(gravdirect == 0) {
         unit.vel.add(-vel, 0);
     };
@@ -267,7 +274,7 @@ let jump = (vel) => {
 
 //endregion
 //region mechanics
-let gravipad = (unit) => {
+const gravipad = (unit) => {
     lastx = unit.tileX();
     lasty = unit.tileY();
 
@@ -291,7 +298,7 @@ let gravipad = (unit) => {
     };
 };
 
-let gravityCenter = (unit) => {
+const gravityCenter = (unit) => {
     let coordinates = [];
     let distances = [];
     let nolock = false;
@@ -347,7 +354,7 @@ let gravityCenter = (unit) => {
 };
 
 //Я ЭТО МЕНЯТЬ НЕ БУДУ, Я УВОЛЬНЯЮСЬ
-var gelJump = (unit) => {
+const gelJump = (unit) => {
     lastx = unit.tileX();
     lasty = unit.tileY();
     if(getBlockBot()==Blocks.titaniumWall){
@@ -369,95 +376,113 @@ var gelJump = (unit) => {
         }
     }else{ajumpvel = 0;}
 }
-var gelStick = (unit) => {
+
+
+const gelStick = (unit) => {
+
     lastx = unit.tileX();
     lasty = unit.tileY();
-    if(getBlock(lastx+1, lasty)==Blocks.plastaniumWall){
+    
+    const positions = [
+        [ +1 ,  0 , -15 ,   0 ],
+        [ -1 ,  0 , +15 ,   0 ],
+        [  0 , +1 ,   0 , -15 ],
+        [  0 , -1 ,   0 , +15 ],
+        [ -1 , -1 , +15 , +15 ],
+        [ +1 , -1 , -15 , +15 ],
+        [ +1 , +1 , -15 , -15 ],
+        [ -1 , +1 , +15 , -15 ]
+    ];
+    
+    for(const [ offsetx , offsety , ...velocity ] of positions)
+        if(getBlock(lastx + offsetx,lasty + offsety) == Blocks.plastaniumWall){
+            
+            hold = true;
+            
+            if(Core.input.keyTab(Binding.pause) && stamina > 99)
+                unit.vel.add(...velocity);
+            
+            return;
+        }
+}
+
+
+const wallHolding = () => {
+    
+    if(!holding)
+        return;
+        
+    if(stamina < 100){
+        hold = false;
+        return;
+    }
+    
+    if(
+        getBlock(lastx + 1,lasty) ||
+        getBlock(lastx - 1,lasty) ||
+        getBlock(lastx,lasty + 1) ||
+        getBlock(lastx,lasty - 1)
+    ){
         hold = true;
-        if(Core.input.keyTap(Binding.pause) && stamina > 99){unit.vel.add(-15, 0);}
-    }else if(getBlock(lastx-1, lasty)==Blocks.plastaniumWall){
-        hold = true;
-        if(Core.input.keyTap(Binding.pause) && stamina > 99){unit.vel.add(15, 0);}
-    }else if(getBlock(lastx, lasty+1)==Blocks.plastaniumWall){
-        hold = true;
-        if(Core.input.keyTap(Binding.pause) && stamina > 99){unit.vel.add(0, -15);}
-    }else if(getBlock(lastx, lasty-1)==Blocks.plastaniumWall){
-        hold = true;
-        if(Core.input.keyTap(Binding.pause) && stamina > 99){unit.vel.add(0, 15);}
-    }else if(getBlock(lastx-1, lasty-1)==Blocks.plastaniumWall){
-        hold = true;
-        if(Core.input.keyTap(Binding.pause) && stamina > 99){unit.vel.add(15, 15);}
-    }else if(getBlock(lastx+1, lasty-1)==Blocks.plastaniumWall){
-        hold = true;
-        if(Core.input.keyTap(Binding.pause) && stamina > 99){unit.vel.add(-15, 15);}
-    }else if(getBlock(lastx+1, lasty+1)==Blocks.plastaniumWall){
-        hold = true;
-        if(Core.input.keyTap(Binding.pause) && stamina > 99){unit.vel.add(-15, -15);}
-    }else if(getBlock(lastx-1, lasty+1)==Blocks.plastaniumWall){
-        hold = true;
-        if(Core.input.keyTap(Binding.pause) && stamina > 99){unit.vel.add(15, -15);}
+        stamina -= 10;
     }
 }
-var wallHolding = () => {
-    if (holding) {
-        if(stamina>99){
-            if(getBlock(lastx+1, lasty)!=false){
-                hold = true;
-                stamina -= 10;
-            }else if(getBlock(lastx-1, lasty)!=false){
-                hold = true;
-                stamina -= 10;
-            }else if(getBlock(lastx, lasty+1)!=false){
-                hold = true;
-                stamina -= 10;
-            }else if(getBlock(lastx, lasty-1)!=false){
-                hold = true;
-                stamina -= 10;
-            }
-        }else{
-            hold = false;
+
+
+const graviFunnel = (unit) => {
+
+    lastx = unit.tileX();
+    lasty = unit.tileY();
+    
+    const tile = getBlock(lastx,lasty);
+    
+    
+    // грави воронка
+
+    if(tile == Blocks.pulseConduit){ 
+        
+        hold = true;
+        
+        switch(tile.build.rotation){
+        case 0 : unit.vel.add(+.55,0); return;
+        case 1 : unit.vel.add(0,+.55); return;
+        case 2 : unit.vel.add(-.55,0); return;
+        case 3 : unit.vel.add(0,-.55); return;
         }
     }
 }
-var graviFunnel = (unit) => {
-    lastx = unit.tileX();
-    lasty = unit.tileY();
-    if(getBlock(lastx, lasty)==Blocks.pulseConduit){ // грави воронка
-        hold = true;
-        if(getTile(lastx, lasty).build.rotation==0){
-            unit.vel.add(.55, 0);
-        }else if(getTile(lastx, lasty).build.rotation==1){
-            unit.vel.add(0, .55);
-        }else if(getTile(lastx, lasty).build.rotation==2){
-            unit.vel.add(-.55, 0);
-        }else if(getTile(lastx, lasty).build.rotation==3){
-            unit.vel.add(0, -.55);
-        };
-    };
-};
+
 
 //не мусор
-var antiGravField = (unit) => {
+
+const antiGravField = (unit) => {
+    
     lastx = unit.tileX();
     lasty = unit.tileY();
 
-    if(getBlock(lastx, lasty) == Blocks.shockMine){
+    if(getBlock(lastx,lasty) == Blocks.shockMine)
         hold = true;
-    };
 };
 
+
 //endregion
-var update = () => { // главный цикл
+
+const update = () => {
+    
     unit = Vars.player.unit();
-    if (unit == null) return;
+    
+    if(unit == null)
+        return;
+    
     try {
+        
         lastx = unit.tileX();
         lasty = unit.tileY();
 
-        if(Core.input.keyTap(Binding.pause) && stamina > 99 && onfloor) {
-            jump(bjumpvel + ajumpvel); 
+        if(Core.input.keyTap(Binding.pause) && stamina > 99 && onfloor){
+            jump(bjumpvel + ajumpvel);
             stamina -= 100; 
-        }; // работа прыжка
+        }
 
         gravipad(unit);
         gelJump(unit);
@@ -466,15 +491,15 @@ var update = () => { // главный цикл
         graviFunnel(unit);
         antiGravField(unit);
         
-        if(!hold && mode==0) { 
+        if(!hold && mode == 0)
             updateGravity();
-        };
-    } catch(e){
-        Log.err("parkour-mod: " + e + ". Maybe you in the void?")
-    };
+
+    } catch(error){
+        Log.err(`Parkour Mod: ${ error }. Maybe you are in the void?`)
+    }
 
     hold = false;
-};
+}
 
 
 Log.info('Running update task');
