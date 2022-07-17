@@ -433,7 +433,7 @@ var antiGravField = (unit) => {
 //endregion
 var update = () => { // главный цикл
     unit = Vars.player.unit();
-    if (unit == null) return;
+    if (unit == null || unit.type.flying) return;
     try {
         lastx = unit.tileX();
         lasty = unit.tileY();
