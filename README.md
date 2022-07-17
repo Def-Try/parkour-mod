@@ -12,7 +12,6 @@
 ### *Movement Mechanics for [Mindustry]*
 
 <br>
-<br>
 
 ---
 

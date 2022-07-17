@@ -7,9 +7,11 @@
 
 ## Intrinsic
 
+*Things you can control or are controlled.*
+
 <br>
 
-## Wall Holding
+### Wall Holding
 
 Hold  <kbd>Space</kbd>
 
@@ -17,13 +19,13 @@ Hold  <kbd>Space</kbd>
 
 <br>
 
-## Jumping
+### Jumping
 
 Tab  <kbd>Space</kbd>
 
 <br>
 
-## Gravity
+### Gravity
 
 When the mod is enabled, you <br>
 will fall towards the ground.
@@ -32,6 +34,8 @@ will fall towards the ground.
 <br>
 
 ## Objects
+
+*Things you can interact with.*
 
 <br>
 
