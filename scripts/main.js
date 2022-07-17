@@ -1,14 +1,17 @@
-//by Deftry, ADI and TheEE
+/*
+ *  by Deftry, ADI and TheEE
+ */
 
-let indev = true;
-let basebuttonw = 150
-let basebuttonh = basebuttonw / 2
+let 
+    indev = true ,
+    basebuttonw = 150 ,
+    basebuttonh = basebuttonw / 2 ;
 
 
-Log.info("Started loading of parkour mechanics");
-Log.info("Loading ui elements");
+Log.info('Started loading of parkour mechanics');
+Log.info('Loading ui elements');
 
-Events.on(ClientLoadEvent, () => {
+Events.on(ClientLoadEvent,() => {
 
     // ebtn
     // cbtn jbtn hbtn
@@ -19,61 +22,78 @@ Events.on(ClientLoadEvent, () => {
     tablem.y = basebuttonh
     let cbtn = TextButton("Change Mode");
     
-    tablem.add(ebtn).size(basebuttonw, basebuttonh).padLeft(6);
+    tablem
+    .add(ebtn)
+    .size(basebuttonw,basebuttonh)
+    .padLeft(6);
+    
     ebtn.clicked(() => {
-        lock = !lock;
-        ebtn.setText(!lock ? "Disable Parkour mod" : "Enable parkour mod");
+        
+        lock = ! lock;
+        
+        ebtn.setText(lock 
+            ? 'Enable Parkour Mod' 
+            : 'Disable Parkour Mod');
     });
-    table.add(cbtn).size(basebuttonw, basebuttonh).padLeft(6);
+    
+    table
+    .add(cbtn)
+    .size(basebuttonw,basebuttonh)
+    .padLeft(6);
+    
     cbtn.clicked(() => {
-        if(mode) {
-            mode=0; 
-            Vars.ui.announce("Parkour mode")
+        if(mode){
+            mode = 0;
+            Vars.ui.announce('Parkour Mode')
         } else {
-            Vars.ui.showCustomConfirm("IN DEVELOPMENT!", "You trying to select [accent]Planet[] mode, but it is still buggy and in very development.", "Turn this thing on!", "Back", () => {
-                mode=1; Vars.ui.announce("Planet mode");
-            }, () => {
-                mode=0; Vars.ui.announce("Parkour mode");
-            });
+            Vars.ui.showCustomConfirm(
+                'IN DEVELOPMENT!' ,
+                'You trying to select [accent]Planet[] mode, but it is still buggy and in very development.' ,
+                'Turn this thing on!' ,
+                'Back' ,
+                () => {
+                    mode = 1;
+                    Vars.ui.announce("Planet mode");
+                },
+                () => {
+                    mode = 0;
+                    Vars.ui.announce("Parkour mode");
+                });
         };
     });
 
-    if (Vars.mobile || indev) { 
-        let jbtn = TextButton("Jump");
-        table.add(jbtn).size(basebuttonw, basebuttonh).padLeft(6);
+    if(Vars.mobile || indev){
+        
+        let jbtn = TextButton('Jump');
+        
+        table
+        .add(jbtn)
+        .size(basebuttonw,basebuttonh)
+        .padLeft(6);
         
         jbtn.clicked(() => {
-            if((stamina > 99) && onfloor) { 
+            if(stamina > 99 && onfloor){ 
                 jump(bjumpvel + ajumpvel); 
                 stamina -= 100; 
-            };
+            }
         });
     };
 
-    table.add(hbtn).size(basebuttonw, basebuttonh).padLeft(6);
-    hbtn.clicked(() => { 
-        holding = !holding;
-    });
-
+    table
+    .add(hbtn)
+    .size(basebuttonw,basebuttonh)
+    .padLeft(6);
     
-    table.visibility = () => {
-        return !lock;
+    hbtn.clicked(() => holding = ! holding);
 
-        /*
-            if (!lock) {
-                return true
-            };
-        
-            return false;    
-        */
-        // то что в коменте выше кринж
-    };
+    table.visibility = () => ! lock;
 
     Vars.ui.hudGroup.addChild(tablem);
     Vars.ui.hudGroup.addChild(table);
 });
 
-Log.info("Loading variables");
+
+Log.info('Loading variables');
 
 let gravity = .5; // скорость гравитации
 let bjumpvel = 15; // скорость прыжка
@@ -92,7 +112,9 @@ let unit;
 let mode = 0; // 0 - обычный, 1 - центр тяжести
 let holding = false;
 
-Log.info("Loading main content");
+
+Log.info('Loading main content');
+
 
 let getBlock = (x, y) => {
     var block = Vars.world.tile(x, y);
@@ -141,12 +163,6 @@ let getBlockBot = () => {
             return Vars.world.tile(lastx, lasty - 1).block();
         };
     };
-
-    //if(gravdirect==0){return Vars.world.tile(lastx+1, lasty).block()}
-    //if(gravdirect==1){return Vars.world.tile(lastx, lasty+1).block()}
-    //if(gravdirect==2){return Vars.world.tile(lastx-1, lasty).block()}
-    //if(gravdirect==3){return Vars.world.tile(lastx, lasty-1).block()}
-    //очень тупо и ненормально
 };
 
 let updateFloor = () => { 
@@ -460,20 +476,27 @@ var update = () => { // главный цикл
     hold = false;
 };
 
-Log.info("Running update task");
+
+Log.info('Running update task');
+
+
 Timer.schedule(() => {
-    if (lock) { 
+    
+    if(lock)
         return
-    };
 
     update();
     updateHud();
     updateFloor();
 
-    if(!hold && mode == 1) {
-        gravityCenter(unit);
-    };
-}, 0, .02);
+    if(hold)
+        return;
+        
+    if(mode != 1)
+        return;
+
+    gravityCenter(unit);
+},0,.02);
 
 
-Log.info("Done initialisation of parkour-mod.");
+Log.info('Done initialisation of parkour-mod.');
