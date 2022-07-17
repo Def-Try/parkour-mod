@@ -3,19 +3,22 @@
 
 <br>
 
+![Banner]
+
 [![Badge License]][License]   ![Badge Status]
 
 <br>
-
-![Banner]
 
 ### *Movement Mechanics for [Mindustry]*
 
 <br>
 <br>
-<br>
+
+---
 
 [![Button Mechanics]][Mechanics]
+
+---
 
 <br>
 <br>
