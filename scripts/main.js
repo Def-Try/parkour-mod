@@ -353,28 +353,35 @@ const gravityCenter = (unit) => {
     };
 };
 
+
 //Я ЭТО МЕНЯТЬ НЕ БУДУ, Я УВОЛЬНЯЮСЬ
+
 const gelJump = (unit) => {
+
     lastx = unit.tileX();
     lasty = unit.tileY();
-    if(getBlockBot()==Blocks.titaniumWall){
-        if(gravdirect == 0 || gravdirect == 2){
-            if(ltilex == lastx){
-                ajumpvel = 15;
-            }else{
-                override = false;
-                ajumpvel = 0;
-                jump(bjumpvel+15);
-            }
-        }else{
-            if(ltiley == lasty){
-                ajumpvel = 15;
-            }else{
-                ajumpvel = 0;
-                jump(bjumpvel+15);
-            }
-        }
-    }else{ajumpvel = 0;}
+
+    if(getBlockBot() != Blocks.titaniumWall){
+        ajumpvel = 0;
+        return;
+    }
+    
+    const upwards = 
+        gravdirect == 0 || 
+        gravdirect == 2 ;
+    
+    
+    const isSame = (upwards)
+        ? ltilex == lastx
+        : ltiley == lasty
+    
+    if(isSame){
+        ajumpvel = 15;
+    } else {
+        override = upwards;
+        ajumpvel = 0;
+        jump(bjumpvel + 15);
+    }
 }
 
 
@@ -383,24 +390,23 @@ const gelStick = (unit) => {
     lastx = unit.tileX();
     lasty = unit.tileY();
     
-    const positions = [
-        [ +1 ,  0 , -15 ,   0 ],
-        [ -1 ,  0 , +15 ,   0 ],
-        [  0 , +1 ,   0 , -15 ],
-        [  0 , -1 ,   0 , +15 ],
-        [ -1 , -1 , +15 , +15 ],
-        [ +1 , -1 , -15 , +15 ],
-        [ +1 , +1 , -15 , -15 ],
-        [ -1 , +1 , +15 , -15 ]
-    ];
+    const offsets = [ -1 , 0 , +1 ];
     
-    for(const [ offsetx , offsety , ...velocity ] of positions)
-        if(getBlock(lastx + offsetx,lasty + offsety) == Blocks.plastaniumWall){
+    for(let x = 0;x < 2;x++)
+        for(let y = 0;y < 2;y++){
+            
+            const
+                offsetX = offsets[x] ,
+                offsetY = offsets[y] ;
+                
+            
+            if(getBlock(lastx + offsetX,lasty + offsetY) !== Block.plastaniumWall)
+                return;
             
             hold = true;
             
             if(Core.input.keyTab(Binding.pause) && stamina > 99)
-                unit.vel.add(...velocity);
+                unit.vel.add(-offsetX * 15,-velocity * 15);
             
             return;
         }
