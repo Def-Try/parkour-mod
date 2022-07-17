@@ -3,100 +3,116 @@
  *  by Deftry, ADI and TheEE
  */
 
-let 
-    indev = true ,
-    basebuttonw = 150 ,
-    basebuttonh = basebuttonw / 2 ;
+let indev = true ;
+let isEnabled = false;
+
+const ButtonStyle = {
+    full : 150 ,
+    half : 75
+}
+
 
 
 Log.info('Started loading of parkour mechanics');
 Log.info('Loading ui elements');
 
 Events.on(ClientLoadEvent,() => {
-
-    // ebtn
-    // cbtn jbtn hbtn
     
     const
-        tablem = new Table().bottom().left() ,
-        table = new Table().bottom().left() ;
+        height = ButtonStyle.half ,
+        width = ButtonStyle.full ;
+
+    const
+        menu_a = new Table().bottom().left() ,
+        menu_b = new Table().bottom().left() ;
     
     let 
-        ebtn = TextButton('Enable Parkour Mode') ,
-        hbtn = TextButton('Hold') ;
+        button_enable = TextButton('Enable Parkour Mode') ,
+        button_hold = TextButton('Hold') ;
     
-    tablem.y = basebuttonh;
+    menu_a.y = height;
     
-    let cbtn = TextButton('Change Mode');
+    let button_mode = TextButton('Change Mode');
     
-    tablem
-    .add(ebtn)
-    .size(basebuttonw,basebuttonh)
+    menu_a
+    .add(button_enable)
+    .size(width,height)
     .padLeft(6);
     
-    ebtn.clicked(() => {
+    button_enable.clicked(() => {
         
-        lock = ! lock;
+        unit = Vars.player.unit();
         
-        ebtn.setText(lock 
-            ? 'Enable Parkour Mod' 
-            : 'Disable Parkour Mod');
+        if(!unit || !unit.type.flying){
+            Vars.ui.announce('You cannot use parkour mode outside of a flying unit.');
+            return;
+        }
+        
+        isEnabled = ! isEnabled;
+        
+        button_enable.setText(isEnabled 
+            ? 'Disable Parkour Mod'
+            : 'Enable Parkour Mod' );
     });
     
-    table
-    .add(cbtn)
-    .size(basebuttonw,basebuttonh)
+    menu_b
+    .add(button_mode)
+    .size(width,height)
     .padLeft(6);
     
-    cbtn.clicked(() => {
+    button_mode.clicked(() => {
+        
         if(mode){
             mode = 0;
-            Vars.ui.announce('Parkour Mode')
-        } else {
-            Vars.ui.showCustomConfirm(
-                'IN DEVELOPMENT!' ,
-                'You trying to select [accent]Planet[] mode, but it is still buggy and in very development.' ,
-                'Turn this thing on!' ,
-                'Back' ,
-                () => {
-                    mode = 1;
-                    Vars.ui.announce("Planet mode");
-                },
-                () => {
-                    mode = 0;
-                    Vars.ui.announce("Parkour mode");
-                });
-        };
+            Vars.ui.announce('Parkour Mode');
+            return;
+        }
+        
+        Vars.ui.showCustomConfirm(
+            'IN DEVELOPMENT!' ,
+            'You trying to select [accent]Planet[] mode, but it is still buggy and in very development.' ,
+            'Turn this thing on!' ,
+            'Back' ,
+            () => {
+                mode = 1;
+                Vars.ui.announce('Planet mode');
+            },
+            () => {
+                mode = 0;
+                Vars.ui.announce('Parkour mode');
+            });
     });
 
     if(Vars.mobile || indev){
         
-        let jbtn = TextButton('Jump');
+        let button_jump = TextButton('Jump');
         
-        table
-        .add(jbtn)
-        .size(basebuttonw,basebuttonh)
+        menu_b
+        .add(button_jump)
+        .size(width,height)
         .padLeft(6);
         
-        jbtn.clicked(() => {
+        button_jump.clicked(() => {
             if(stamina > 99 && onfloor){ 
                 jump(bjumpvel + ajumpvel); 
                 stamina -= 100; 
             }
         });
-    };
+    }
 
-    table
-    .add(hbtn)
-    .size(basebuttonw,basebuttonh)
+    menu_b
+    .add(button_hold)
+    .size(width,height)
     .padLeft(6);
     
-    hbtn.clicked(() => holding = ! holding);
+    button_hold.clicked(() => holding = ! holding);
 
-    table.visibility = () => ! lock;
+    menu_b.visibility = () => isEnabled;
 
-    Vars.ui.hudGroup.addChild(tablem);
-    Vars.ui.hudGroup.addChild(table);
+    const menus = Vars.ui.hudGroup;
+    
+    menus.addChild(menu_a);
+    menus.addChild(menu_b);
 });
 
 
@@ -106,7 +122,6 @@ let gravity = .5; // скорость гравитации
 let bjumpvel = 15; // скорость прыжка
 let ajumpvel = 0; // доп. скорость прыжка
 let direction = 0; // 0 - Y, 1 - X
-let lock = true; // системная блокировка
 let stamina = 10000; // выносливость
 let onfloor = false; 
 let gravdirect = 3;
@@ -123,235 +138,208 @@ let holding = false;
 Log.info('Loading main content');
 
 
-const getBlock = (x, y) => {
-    var block = Vars.world.tile(x, y);
-    if(block != null && block.block() != Blocks.air) {
-        return block.block();
-    } else {
+const getBlock = (x,y) => {
+    
+    const block = Vars.world.tile(x,y);
+    
+    if(block == null)
         return false;
-    };
-};
-
-const getTile = (x, y) => {
-    var block = Vars.world.tile(x, y);
-    if(block != null) {
-        return block;
-    } else { 
-        return false;
-    };
-};
-
-const setGravity = (grav) => {
-    gravity = grav; 
-    jump = -grav * 10
-};
-
-const updateHud = () => {
-    Vars.ui.showInfoToast("Stamina:" + stamina / 100 + "%", .04);
-};
-
-//region util functions
-
-const getBlockBot = () => {
-    switch(gravdirect) {
-        case 0: {
-            return Vars.world.tile(lastx + 1, lasty).block();
-        };
-
-        case 1: {
-            return Vars.world.tile(lastx, lasty + 1).block();
-        };
-
-        case 2: {
-            return Vars.world.tile(lastx - 1, lasty).block();
-        };
-
-        case 3: {
-            return Vars.world.tile(lastx, lasty - 1).block();
-        };
-    };
-};
-
-const updateFloor = () => { 
-    if(gravdirect == 0) {
-        if(getBlock(lastx + 1, lasty).solid) { 
-            if(stamina < 10000) {
-                stamina += 100
-            } else {
-                stamina=10000
-            }; 
-            
-            onfloor = true; 
-            ltilex = lastx; 
-            ltiley = lasty;
-        } else{ 
-            onfloor = false;
-        };
-    } else { 
-        if(gravdirect == 2) {
-            if(getBlock(lastx - 1, lasty).solid) { 
-                if(stamina < 10000) {
-                    stamina += 100;
-                } else {
-                    stamina = 10000
-                }; 
-                
-                onfloor = true; 
-                ltilex = lastx; 
-                ltiley = lasty;
-            } else {
-                onfloor = false;
-            };
-        } else {
-            if(gravdirect == 1) {
-                if(getBlock(lastx, lasty + 1).solid) { 
-                    if(stamina < 10000) {
-                        stamina += 100
-                    } else { 
-                        stamina=10000
-                    }; 
-                    
-                    onfloor = true; 
-                    ltilex = lastx; 
-                    ltiley = lasty;
-                } else{ 
-                    onfloor=false;
-                };
-            } else {
-                if(getBlock(lastx, lasty - 1).solid) { 
-                    if(stamina < 10000) {
-                        stamina += 100
-                    } else { 
-                        stamina = 10000;
-                    }; 
-                    
-                    onfloor = true; 
-                    ltilex = lastx; 
-                    ltiley = lasty;
-                } else{
-                    onfloor=false;
-                };
-            };
-        };
-    };
-};
-
-const updateGravity = () => {
-    if(gravdirect == 0) {
-        unit.vel.add(gravity, 0);
-    };
-
-    if(gravdirect == 1) {
-        unit.vel.add(0, gravity);
-    };
-
-    if(gravdirect == 2) {
-        unit.vel.add(-gravity, 0);
-    };
-
-    if(gravdirect == 3) {
-        unit.vel.add(0, -gravity);
-    };
+        
+    const type = block.block();
+    
+    return (type == Blocks.air)
+        ? block.block()
+        : false ;
 }
 
-const jump = (vel) => {
-    if(gravdirect == 0) {
-        unit.vel.add(-vel, 0);
-    };
+
+const getTile = (x,y) => {
     
-    if(gravdirect == 1) {
-        unit.vel.add(0, -vel);
-    };
+    const tile = Vars.world.tile(x, y);
+    
+    return block || false;
+}
 
-    if(gravdirect == 2) {
-        unit.vel.add(vel, 0);
-    };
 
-    if(gravdirect == 3) {
-        unit.vel.add(0, vel);
-    };
-};
+const setGravity = (value) => {
+    gravity = value; 
+    jump = -value * 10
+}
+
+
+const updateHud = () => {
+    const percent = stamina / 100;
+    Vars.ui.showInfoToast('Stamina:' + percent + '%',.04);
+}
+
+
+const getBlockBot = () => {
+    switch(gravdirect){
+    case 0 : return Vars.world.tile(lastx + 1, lasty).block();
+    case 1 : return Vars.world.tile(lastx, lasty + 1).block();
+    case 2 : return Vars.world.tile(lastx - 1, lasty).block();
+    case 3 : return Vars.world.tile(lastx, lasty - 1).block();
+    }
+}
+
+const updateFloor = () => {
+    switch(gravdirect){
+    case 0 :
+     
+        if(getBlock(lastx + 1,lasty).solid)
+            break;
+            
+        onfloor = false;
+        return;
+    case 1 :
+    
+        if(getBlock(lastx - 1,lasty).solid)
+            break;
+            
+        onfloor = false;
+        return;
+    case 2 :
+    
+        if(getBlock(lastx,lasty + 1).solid)
+            break;
+            
+        onfloor = false;
+        return;
+    case 3 :
+    
+        if(getBlock(lastx,lasty - 1).solid)
+            break;
+            
+        onfloor = false;
+        return;
+    }
+    
+    stamina += 100;
+    
+    if(stamina > 10000)
+        stamina = 10000
+    
+    onfloor = true; 
+    ltilex = lastx; 
+    ltiley = lasty;
+}
+
+
+const updateGravity = () => {
+    switch(gravdirect){
+    case 0 : unit.vel.add(+gravity,0); return;
+    case 1 : unit.vel.add(0,+gravity); return;
+    case 2 : unit.vel.add(-gravity,0); return;
+    case 3 : unit.vel.add(0,-gravity); return;
+    }
+}
+
+
+const jump = (velocity) => {
+    switch(gravdirect){
+    case 0 : unit.vel.add(-velocity,0); return;
+    case 1 : unit.vel.add(0,-velocity); return;
+    case 2 : unit.vel.add(+velocity,0); return;
+    case 3 : unit.vel.add(0,+velocity); return;
+    }
+}
+
 
 //endregion
 //region mechanics
+
 const gravipad = (unit) => {
+    
     lastx = unit.tileX();
     lasty = unit.tileY();
 
-    if(getBlock(lastx, lasty) == Blocks.conveyor) { // гравипад
-        //может gravdirect = getTile(lastx, lasty).build.rotation;
-        if(getTile(lastx, lasty).build.rotation == 0) { // гравитация вправо
-            gravdirect = 0;
-        } else {
-            if(getTile(lastx, lasty).build.rotation == 1) { // гравитация вверх
-                gravdirect = 1;
-            } else {
-                if(getTile(lastx, lasty).build.rotation == 2) { // гравитация влево
-                    gravdirect = 2;
-                } else {
-                    if(getTile(lastx, lasty).build.rotation == 3) { // гравитация вниз
-                        gravdirect = 3;
-                    };
-                };
-            };
-        };
-    };
-};
+    if(getBlock(lastx,lasty) == Blocks.conveyor)
+        gravdirect = getTile(lastx,lasty).build.rotation;
+}
+
 
 const gravityCenter = (unit) => {
-    let coordinates = [];
-    let distances = [];
-    let nolock = false;
+    
+    let 
+        coordinates = [] ;
+        distances = [] ,
+        nolock = false ;
 
-    if(!onfloor && !hold){
-        for(let y = -15; y < 16; y++) {
-            for(let i = -15; i < 16; i++) {
-                if(getBlock(lastx+i, lasty + y) == Blocks.thoriumWall) {
-                    coordinates.push({
-                        x: i, 
-                        y: y
-                    });
+    if(onfloor)
+        return;
+        
+    if(hold)
+        return
 
-                    nolock = true;
-                };
-            };
-        };
+    for(let y = -15;y < 16;y++)
+        for(let x = -15;x < 16;x++)
+            if(getBlock(lastx + x,lasty + y) == Blocks.thoriumWall){
+                coordinates.push({ x : x , y : y });
+                nolock = true;
+            }
 
-        if(nolock) {
-            for(let j = 0; j < coordinates.length; j++) {
-                var dist = Math.sqrt(((lastx + coordinates[j].x - lastx) ^ 2) + ((lasty + coordinates[j].y - lasty) ^ 2));
-                distances.push( dist );
-            };
+    if(!nolock)
+        return;
 
-            let mini = 0;
-            for(let j = 0; j < distances.length; j++){
-                if(distances[j] < distances[mini]) {
-                    mini = j;
-                };
-            };
+    for(let c = 0;c < coordinates.length;c++){
+        
+        const distance = Math.sqrt(
+            ((lastx + coordinates[c].x - lastx) ^ 2) + 
+            ((lasty + coordinates[c].y - lasty) ^ 2) );
+        
+        distances.push(distance);
+    }
 
-            if (coordinates[mini].x < 0 && gravdirect != 3 && gravdirect != 1) { 
-                unit.vel.add(-gravity, 0); 
-                gravdirect = 2;
-            };
+    let shortest = 0;
+    
+    for(let d = 0;d < distances.length;d++)
+        if(distances[d] < distances[shortest])
+            shortest = d;
 
-            if (coordinates[mini].x > 0 && gravdirect != 3 && gravdirect != 1) { 
-                unit.vel.add(gravity, 0); 
-                gravdirect = 0;
-            };
-            
-            if (coordinates[mini].y < 0 && gravdirect != 2 && gravdirect != 0) { 
-                unit.vel.add(0, -gravity); 
-                gravdirect = 3;
-            };
+    const
+        x = coordinates[shortest].x ,
+        y = coordinates[shortest].y ;
+        
+    const vertical =
+        gravdirect === 1 ||
+        gravdirect === 3 ;
+        
 
-            if (coordinates[mini].y > 0 && gravdirect != 2 && gravdirect != 0) { 
-                unit.vel.add(0, gravity); 
-                gravdirect = 1;
-            };
-        };
-    };
-};
+    // if(x != 0 && !vertical){
+    // 
+    //     if(x < 0){
+    //         unit.vel.add(-gravity,0); 
+    //         gravdirect = 2;
+    //     } else {
+    //         unit.vel.add(gravity,0);
+    //         gravdirect = 0;
+    //     }
+    // }
+    // 
+    // if(y != 0 && vertical){
+    // 
+    //     if(y < 0){
+    //         unit.vel.add(0,-gravity); 
+    //         gravdirect = 3;
+    //     } else {
+    //         unit.vel.add(0,+gravity); 
+    //         gravdirect = 1;
+    //     }
+    // }
+    
+    const position = vertical
+        ? y : x ;
+        
+    if(position === 0)
+        return;
+    
+    unit.vel.add(
+        ! vertical * gravity ,
+          vertical * gravity
+    );
+    
+    gravdirect = vertical + (position < 0) * 2;
+}
 
 
 //Я ЭТО МЕНЯТЬ НЕ БУДУ, Я УВОЛЬНЯЮСЬ
@@ -400,7 +388,7 @@ const gelStick = (unit) => {
                 offsetY = offsets[y] ;
                 
             
-            if(getBlock(lastx + offsetX,lasty + offsetY) !== Block.plastaniumWall)
+            if(getBlock(lastx + offsetX,lasty + offsetY) !== Blocks.plastaniumWall)
                 return;
             
             hold = true;
@@ -477,7 +465,10 @@ const update = () => {
     
     unit = Vars.player.unit();
     
-    if(unit == null)
+    if(!unit)
+        return;
+        
+    if(!unit.type.flying)
         return;
     
     try {
@@ -501,7 +492,7 @@ const update = () => {
             updateGravity();
 
     } catch(error){
-        Log.err(`Parkour Mod: ${ error }. Maybe you are in the void?`)
+        Log.err('Parkour Mod:' + error + 'Maybe you are in the void?')
     }
 
     hold = false;
@@ -513,8 +504,16 @@ Log.info('Running update task');
 
 Timer.schedule(() => {
     
-    if(lock)
+    if(!isEnabled)
         return
+        
+    unit = Vars.player.unit();
+    
+    if(!unit)
+        return;
+        
+    if(!unit.type.flying)
+        return;
 
     update();
     updateHud();
@@ -527,6 +526,7 @@ Timer.schedule(() => {
         return;
 
     gravityCenter(unit);
+    
 },0,.02);
 
 
