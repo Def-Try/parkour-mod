@@ -1,26 +1,101 @@
-![Title yooo](https://user-images.githubusercontent.com/71168720/165684565-b8f76a46-07a1-432c-b211-87536cf64f60.png)
-# Parkour mod
-A mod that adds new movement mechanics to Mindustry. W.I.P.
 
-# What mechanics does it adds?
-WALL HOLDING - Hold SPACE. Using STAMINA to hold on walls.
+<div align = center>
 
-JUMP - Press SPACE. Just a regular mod jump.
+![Banner]
 
-GRAVITY - Enable mod. Pushes you to direction of gravity.
+### *Movement Mechanics for [Mindustry]*
 
-JUMP PAD - small titanium wall. If you fall on this pad from height, you will bounce back. If you step on this pad and jump, you will jump higher than normal.
+<br>
+<br>
 
-STICKY GEL - small plastanium wall. You can walk on walls and bounce off.
+</div>
 
-GRAVITY PAD - standart conveyor. It changes your gravity direction to direction of conveyor.
 
-GRAVITATIONAL FUNNEL - titanium conduit. Slowly pushes you in direction of conduit. Still in development.
+## Mechanics
 
-ANTI GRAVITY FIELD - shock mines. Just disables gravity for you while in field.
+### Wall Holding
 
-# How to play it on mobile?
-You have two buttons - one with server icon, other with "up" icon. Press "up" icon button to jump
+Hold  <kbd>Space</kbd>
 
-# WARNING!
-Please, do not toggle parkour in flying unit and/or don't let unit fall to the void(black tiles outside of map)! It crashes the game.
+*Uses **Stamina** while holding on.*
+
+<br>
+
+### Jumping
+
+Tab  <kbd>Space</kbd>
+
+<br>
+
+### Gravity
+
+When the mod is enabled, you <br>
+will fall towards the ground.
+
+<br>
+
+### Jump Pads
+
+A small titanium wall that if <br>
+fallen onto bounces you back.
+
+*If you step on this pad and jump,* <br>
+*you will jump higher than normal.*
+
+<br>
+
+### Stick Gel
+
+A small plastanium wall that you <br>
+can walk on and bounce off from.
+
+<br>
+
+### Gravity Pad
+
+A standard conveyor that changes <br>
+the gravitational direction to the <br>
+direction of conveyor.
+
+<br>
+
+### Gravitational Funnel
+
+A titanium conduit that pushes <br>
+you in direction of the conduit.
+
+*Still in development.*
+
+<br>
+
+### Anti Gravity Field
+
+A shock mine that disables gravity while <br>
+you are within it's field of influence.
+
+<br>
+<br>
+
+## Mobile Support
+
+On mobile you have an additional button, <br>
+marked with a ⬆, that is used for jumping.
+
+<br>
+<br>
+
+## Caution
+
+*The following things can crash your game.*
+
+- Toggling parkour mode in a flying unit
+
+- Falling into the void / outside the map
+
+<br>
+
+
+<!----------------------------------------------------------------------------->
+
+[Banner]: https://user-images.githubusercontent.com/71168720/165684565-b8f76a46-07a1-432c-b211-87536cf64f60.png
+[Mindustry]: https://mindustrygame.github.io/
