@@ -1,6 +1,6 @@
 
 
-function logError(error){
+export function logError(error){
     Log.err(
         '[  Ｐａｒｋｏｕｒ　Ｍｏｄ  ]\n\n' + 
         error.message + 
@@ -8,11 +8,4 @@ function logError(error){
         error.stack + 
         '\n'
     );
-}
-
-
-
-
-exports = { 
-    logError : logError
 }
