@@ -1,4 +1,7 @@
 
+const { logError } = require('Logger');
+
+
 /*
  *  by Deftry, ADI and TheEE
  */
@@ -127,7 +130,6 @@ let ajumpvel = 0; // доп. скорость прыжка
 let direction = 0; // 0 - Y, 1 - X
 let stamina = 10000; // выносливость
 let onfloor = false; 
-let hold = false;
 let lastx;
 let lasty;
 let ltilex;
@@ -146,6 +148,18 @@ let holding = false;
 
 let gravitation = 3;
 
+
+
+let hold = false;
+
+
+function holdOn(){
+    hold = true;
+}
+
+function letGo(){
+    hold = false;
+}
 
 
 Log.info('Loading main content');
@@ -226,8 +240,6 @@ function updateHud(){
 }
 
 
-
-    
 
 function isFloorSolid(){
     
@@ -394,44 +406,44 @@ function gelStick(unit){
     
     for(let x = 0;x < 2;x++)
         for(let y = 0;y < 2;y++){
-            
+    
             const
                 offsetX = offsets[x] ,
                 offsetY = offsets[y] ;
-                
+    
             if(blockAt(lastx + offsetX,lasty + offsetY) !== Blocks.plastaniumWall)
                 return;
-            
-            hold = true;
-            
+    
+            holdOn();
+    
             if(Core.input.keyTab(Binding.pause) && stamina > 99)
                 unit.vel.add(
-                    -offsetX * 15 ,
-                    -velocity * 15
+                    - offsetX * 15 ,
+                    - offsetY * 15
                 );
-            
+    
             return;
         }
 }
 
 
-const wallHolding = () => {
+function nextToAnyBlock(){
+    return blockAt(lastx,lasty + 1)
+        || blockAt(lastx,lasty - 1)
+        || blockAt(lastx + 1,lasty)
+        || blockAt(lastx - 1,lasty) ;
+}
+
+function wallHolding(){
     
     if(!holding)
         return;
         
-    if(stamina < 100){
-        hold = false;
-        return;
-    }
+    if(stamina < 100)
+        return letGo();
     
-    if(
-        blockAt(lastx + 1,lasty) ||
-        blockAt(lastx - 1,lasty) ||
-        blockAt(lastx,lasty + 1) ||
-        blockAt(lastx,lasty - 1)
-    ){
-        hold = true;
+    if(nextToAnyBlock()){
+        holdOn();
         stamina -= 10;
     }
 }
@@ -439,14 +451,14 @@ const wallHolding = () => {
 
 function graviFunnel(unit){
     
-    const tile = blockAt(lastx,lasty);
+    const block = blockAt(lastx,lasty);
 
-    if(tile != Blocks.pulseConduit)
+    if(block != Blocks.pulseConduit)
         return;
         
-    hold = true;
+    holdOn();
     
-    const offset = directToOffset(tile.build.rotation);
+    const offset = directToOffset(block.build.rotation);
     
     unit.vel.add(
         -.55 * offset[0] ,
@@ -458,7 +470,7 @@ function graviFunnel(unit){
 function antiGravField(unit){
     
     if(unitOn(unit,Blocks.shockMine))
-        hold = true;
+        holdOn();
 }
 
 
@@ -474,7 +486,7 @@ function checkInteractables(unit){
 }
 
 
-const update = () => {
+function update(){
     
     unit = Vars.player.unit();
     
@@ -488,7 +500,7 @@ const update = () => {
 
         if(Core.input.keyTap(Binding.pause) && stamina > 99 && onfloor){
             jump(bjumpvel + ajumpvel);
-            stamina -= 100; 
+            stamina -= 100;
         }
 
         checkInteractables(unit);
@@ -496,17 +508,9 @@ const update = () => {
         if(!hold && mode == 0)
             updateGravity();
 
-    } catch(error){
-        Log.err(
-            '[  Ｐａｒｋｏｕｒ　Ｍｏｄ  ]\n\n' + 
-            error.message + 
-            '\n\n' + 
-            error.stack + 
-            '\n'
-        );
-    }
+    } catch(error) { logError(error) }
 
-    hold = false;
+    letGo();
 }
 
 
@@ -527,10 +531,7 @@ Timer.schedule(() => {
     updateHud();
     updateFloor();
 
-    if(hold)
-        return;
-        
-    if(mode != 1)
+    if(hold || mode != 1)
         return;
 
     gravityCenter(unit);
