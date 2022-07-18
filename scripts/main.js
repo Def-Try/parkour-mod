@@ -46,7 +46,7 @@ Events.on(ClientLoadEvent,() => {
         
         unit = Vars.player.unit();
         
-        if(!unit || !unit.type.flying){
+        if(!unit || unit.type.flying){
             Vars.ui.announce('You cannot use parkour mode outside of a flying unit.');
             return;
         }
@@ -151,6 +151,11 @@ let gravitation = 3;
 Log.info('Loading main content');
 
 
+function canParkour(unit){
+    return unit && ! unit.type.flying;
+}
+
+
 function tileAt(x,y){
     return Vars.world.tile(x,y) || false;
 }
@@ -163,18 +168,17 @@ function blockAt(x,y){
         ? block : false ;
 }
 
-
-const setGravity = (value) => {
-    gravity = value; 
-    jump = -value * 10
+function tileIs(x,y,type){
+    return tileAt(x,y) == type;
 }
 
-
-const updateHud = () => {
-    const percent = stamina / 100;
-    Vars.ui.showInfoToast('Stamina:' + percent + '%',.04);
+function unitOn(unit,type){
+    return tileIs(unit.tileX(),unit.tileY(),type);
 }
 
+function unitNear(unit,type){
+    return relativeBlock() == type;
+}
 
 const offsets = [
     [ +1 ,  0 ] ,
@@ -185,19 +189,8 @@ const offsets = [
 
 const directToOffset = (direction) =>
     offsets[direction];
-    
 
-const blockAtBot = () => {
-    
-    const offset = directToOffset(gravitation);
-    
-    return Vars.world
-        .tile(lastx + offset[0],lasty + offset[1])
-        .block();
-}
-
-
-const relativeTile = () => {
+function relativeTile(){
     
     const offset = directToOffset(gravitation);
     
@@ -207,7 +200,7 @@ const relativeTile = () => {
     );
 }
 
-const relativeBlock = () => {
+function relativeBlock(){
     
     const tile = relativeTile();
     
@@ -215,9 +208,28 @@ const relativeBlock = () => {
         ? tile.block()
         : false ;
 }
+
+
+function setGravity(value){
+    gravity = value; 
+    jump = -value * 10
+}
+
+
+function updateHud(){
+    
+    let percent = stamina / 100;
+    
+    percent = percent - percent % 1;
+    
+    Vars.ui.showInfoToast('Stamina:' + percent + '%',.04);
+}
+
+
+
     
 
-const isFloorSolid = () => {
+function isFloorSolid(){
     
     const block = relativeBlock();
     
@@ -258,7 +270,7 @@ const updateFloor = () => {
 }
 
 
-const updateGravity = () => {
+function updateGravity(){
     
     const offset = directToOffset(gravitation);
     
@@ -276,7 +288,7 @@ const jumpOffset = [
     [  0 , +1 ]
 ]
 
-const jump = (velocity) => {
+function jump(velocity){
     
     const offset = jumpOffset[gravitation];
     
@@ -287,12 +299,8 @@ const jump = (velocity) => {
 }
 
 
-const gravipad = (unit) => {
-    
-    lastx = unit.tileX();
-    lasty = unit.tileY();
-
-    if(blockAt(lastx,lasty) == Blocks.conveyor)
+function gravipad(unit){
+    if(unitOn(unit,Blocks.conveyor))
         gravitation = tileAt(lastx,lasty).build.rotation;
 }
 
@@ -356,12 +364,9 @@ const gravityCenter = (unit) => {
 }
 
 
-const gelJump = (unit) => {
+function gelJump(unit){
 
-    lastx = unit.tileX();
-    lasty = unit.tileY();
-
-    if(blockAtBot() != Blocks.titaniumWall){
+    if(unitNear(unit,Blocks.titaniumWall)){
         ajumpvel = 0;
         return;
     }
@@ -383,11 +388,8 @@ const gelJump = (unit) => {
 }
 
 
-const gelStick = (unit) => {
+function gelStick(unit){
 
-    lastx = unit.tileX();
-    lasty = unit.tileY();
-    
     const offsets = [ -1 , 0 , +1 ];
     
     for(let x = 0;x < 2;x++)
@@ -397,14 +399,16 @@ const gelStick = (unit) => {
                 offsetX = offsets[x] ,
                 offsetY = offsets[y] ;
                 
-            
             if(blockAt(lastx + offsetX,lasty + offsetY) !== Blocks.plastaniumWall)
                 return;
             
             hold = true;
             
             if(Core.input.keyTab(Binding.pause) && stamina > 99)
-                unit.vel.add(-offsetX * 15,-velocity * 15);
+                unit.vel.add(
+                    -offsetX * 15 ,
+                    -velocity * 15
+                );
             
             return;
         }
@@ -433,52 +437,48 @@ const wallHolding = () => {
 }
 
 
-const graviFunnel = (unit) => {
-
-    lastx = unit.tileX();
-    lasty = unit.tileY();
+function graviFunnel(unit){
     
     const tile = blockAt(lastx,lasty);
-    
-    
-    // грави воронка
 
-    if(tile == Blocks.pulseConduit){ 
+    if(tile != Blocks.pulseConduit)
+        return;
         
-        hold = true;
-        
-        switch(tile.build.rotation){
-        case 0 : unit.vel.add(+.55,0); return;
-        case 1 : unit.vel.add(0,+.55); return;
-        case 2 : unit.vel.add(-.55,0); return;
-        case 3 : unit.vel.add(0,-.55); return;
-        }
-    }
+    hold = true;
+    
+    const offset = directToOffset(tile.build.rotation);
+    
+    unit.vel.add(
+        -.55 * offset[0] ,
+        -.55 * offset[1] 
+    );
 }
 
 
-//не мусор
-
-const antiGravField = (unit) => {
+function antiGravField(unit){
     
-    lastx = unit.tileX();
-    lasty = unit.tileY();
-
-    if(blockAt(lastx,lasty) == Blocks.shockMine)
+    if(unitOn(unit,Blocks.shockMine))
         hold = true;
-};
+}
 
 
-//endregion
+
+function checkInteractables(unit){
+    
+    gravipad(unit);
+    gelJump(unit);
+    gelStick(unit);
+    wallHolding();
+    graviFunnel(unit);
+    antiGravField(unit);
+}
+
 
 const update = () => {
     
     unit = Vars.player.unit();
     
-    if(!unit)
-        return;
-        
-    if(!unit.type.flying)
+    if(!canParkour(unit))
         return;
     
     try {
@@ -491,18 +491,19 @@ const update = () => {
             stamina -= 100; 
         }
 
-        gravipad(unit);
-        gelJump(unit);
-        gelStick(unit);
-        wallHolding();
-        graviFunnel(unit);
-        antiGravField(unit);
+        checkInteractables(unit);
         
         if(!hold && mode == 0)
             updateGravity();
 
     } catch(error){
-        Log.err('Parkour Mod:' + error + 'Maybe you are in the void?')
+        Log.err(
+            '[  Ｐａｒｋｏｕｒ　Ｍｏｄ  ]\n\n' + 
+            error.message + 
+            '\n\n' + 
+            error.stack + 
+            '\n'
+        );
     }
 
     hold = false;
@@ -519,10 +520,7 @@ Timer.schedule(() => {
         
     unit = Vars.player.unit();
     
-    if(!unit)
-        return;
-        
-    if(!unit.type.flying)
+    if(!canParkour(unit))
         return;
 
     update();
