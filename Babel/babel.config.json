@@ -1,9 +1,0 @@
-{
-    "presets": [[
-        "@babel/preset-env" , {
-            "useBuiltIns" : "usage" ,
-            "targets" : { "rhino": "1.7.7.2" },
-            "corejs" : "3.6.5" 
-        }]
-    ]
-}
