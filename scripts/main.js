@@ -12,6 +12,9 @@ const ButtonStyle = {
 }
 
 
+Log.info(typeof Blocks.titaniumWall)
+
+
 
 Log.info('Started loading of parkour mechanics');
 Log.info('Loading ui elements');
@@ -124,7 +127,6 @@ let ajumpvel = 0; // доп. скорость прыжка
 let direction = 0; // 0 - Y, 1 - X
 let stamina = 10000; // выносливость
 let onfloor = false; 
-let gravdirect = 3;
 let hold = false;
 let lastx;
 let lasty;
@@ -135,29 +137,30 @@ let mode = 0; // 0 - обычный, 1 - центр тяжести
 let holding = false;
 
 
+/*
+ *  0 : Right
+ *  1 : Up
+ *  2 : Left
+ *  3 : Down
+ */
+
+let gravitation = 3;
+
+
+
 Log.info('Loading main content');
 
 
-const getBlock = (x,y) => {
-    
-    const block = Vars.world.tile(x,y);
-    
-    if(block == null)
-        return false;
-        
-    const type = block.block();
-    
-    return (type == Blocks.air)
-        ? block.block()
-        : false ;
+function tileAt(x,y){
+    return Vars.world.tile(x,y) || false;
 }
 
+function blockAt(x,y){
+    
+    const block = tileAt(x,y);
 
-const getTile = (x,y) => {
-    
-    const tile = Vars.world.tile(x, y);
-    
-    return block || false;
+    return (block && block.type != Blocks.air)
+        ? block : false ;
 }
 
 
@@ -173,88 +176,124 @@ const updateHud = () => {
 }
 
 
-const getBlockBot = () => {
-    switch(gravdirect){
-    case 0 : return Vars.world.tile(lastx + 1, lasty).block();
-    case 1 : return Vars.world.tile(lastx, lasty + 1).block();
-    case 2 : return Vars.world.tile(lastx - 1, lasty).block();
-    case 3 : return Vars.world.tile(lastx, lasty - 1).block();
-    }
+const offsets = [
+    [ +1 ,  0 ] ,
+    [  0 , +1 ] ,
+    [ -1 ,  0 ] ,
+    [  0 , -1 ]
+]
+
+const directToOffset = (direction) =>
+    offsets[direction];
+    
+
+const blockAtBot = () => {
+    
+    const offset = directToOffset(gravitation);
+    
+    return Vars.world
+        .tile(lastx + offset[0],lasty + offset[1])
+        .block();
+}
+
+
+const relativeTile = () => {
+    
+    const offset = directToOffset(gravitation);
+    
+    return tileAt(
+        lastx + offset[0] ,
+        lasty + offset[1]
+    );
+}
+
+const relativeBlock = () => {
+    
+    const tile = relativeTile();
+    
+    return (tile)
+        ? tile.block()
+        : false ;
+}
+    
+
+const isFloorSolid = () => {
+    
+    const block = relativeBlock();
+    
+    return (block)
+        ? block.solid
+        : false ;
 }
 
 const updateFloor = () => {
-    switch(gravdirect){
-    case 0 :
-     
-        if(getBlock(lastx + 1,lasty).solid)
-            break;
-            
-        onfloor = false;
-        return;
-    case 1 :
     
-        if(getBlock(lastx - 1,lasty).solid)
-            break;
-            
-        onfloor = false;
-        return;
-    case 2 :
+    onfloor = isFloorSolid();
     
-        if(getBlock(lastx,lasty + 1).solid)
-            break;
-            
-        onfloor = false;
-        return;
-    case 3 :
-    
-        if(getBlock(lastx,lasty - 1).solid)
-            break;
-            
-        onfloor = false;
-        return;
+    if(onfloor){
+        
+        stamina += 100;
+        
+        if(stamina > 10000)
+            stamina = 10000;
+        
+        ltilex = lastx;
+        ltiley = lasty;
+        
+        const vertical = gravitation % 2;
+        
+        let
+            x = unit.vel.x ,
+            y = unit.vel.y ;
+        
+        if(vertical && (gravitation === 1 ? y > 0 : y < 0))
+            y = 0;
+        
+        if(!vertical && (gravitation === 0 ? x > 0 : x < 0))
+            y = 0;
+                
+        
+        unit.vel.set(x,y);
     }
-    
-    stamina += 100;
-    
-    if(stamina > 10000)
-        stamina = 10000
-    
-    onfloor = true; 
-    ltilex = lastx; 
-    ltiley = lasty;
 }
 
 
 const updateGravity = () => {
-    switch(gravdirect){
-    case 0 : unit.vel.add(+gravity,0); return;
-    case 1 : unit.vel.add(0,+gravity); return;
-    case 2 : unit.vel.add(-gravity,0); return;
-    case 3 : unit.vel.add(0,-gravity); return;
-    }
+    
+    const offset = directToOffset(gravitation);
+    
+    unit.vel.add(
+        gravity * offset[0] ,
+        gravity * offset[1] 
+    );
 }
 
+
+const jumpOffset = [
+    [ -1 ,  0 ] ,
+    [  0 , -1 ] ,
+    [ +1 ,  0 ] ,
+    [  0 , +1 ]
+]
 
 const jump = (velocity) => {
-    switch(gravdirect){
-    case 0 : unit.vel.add(-velocity,0); return;
-    case 1 : unit.vel.add(0,-velocity); return;
-    case 2 : unit.vel.add(+velocity,0); return;
-    case 3 : unit.vel.add(0,+velocity); return;
-    }
+    
+    const offset = jumpOffset[gravitation];
+    
+    unit.vel.add(
+        velocity * offset[0] ,
+        velocity * offset[1]
+    );
 }
 
-
-//endregion
-//region mechanics
 
 const gravipad = (unit) => {
     
     lastx = unit.tileX();
     lasty = unit.tileY();
 
-    if(getBlock(lastx,lasty) == Blocks.conveyor)
-        gravdirect = getTile(lastx,lasty).build.rotation;
+    if(blockAt(lastx,lasty) == Blocks.conveyor)
+        gravitation = tileAt(lastx,lasty).build.rotation;
 }
 
 
@@ -273,7 +312,7 @@ const gravityCenter = (unit) => {
 
     for(let y = -15;y < 16;y++)
         for(let x = -15;x < 16;x++)
-            if(getBlock(lastx + x,lasty + y) == Blocks.thoriumWall){
+            if(blockAt(lastx + x,lasty + y) == Blocks.thoriumWall){
                 coordinates.push({ x : x , y : y });
                 nolock = true;
             }
@@ -300,32 +339,7 @@ const gravityCenter = (unit) => {
         x = coordinates[shortest].x ,
         y = coordinates[shortest].y ;
         
-    const vertical =
-        gravdirect === 1 ||
-        gravdirect === 3 ;
-        
-
-    // if(x != 0 && !vertical){
-    // 
-    //     if(x < 0){
-    //         unit.vel.add(-gravity,0); 
-    //         gravdirect = 2;
-    //     } else {
-    //         unit.vel.add(gravity,0);
-    //         gravdirect = 0;
-    //     }
-    // }
-    // 
-    // if(y != 0 && vertical){
-    // 
-    //     if(y < 0){
-    //         unit.vel.add(0,-gravity); 
-    //         gravdirect = 3;
-    //     } else {
-    //         unit.vel.add(0,+gravity); 
-    //         gravdirect = 1;
-    //     }
-    // }
+    const vertical = gravitation % 2;
     
     const position = vertical
         ? y : x ;
@@ -338,38 +352,34 @@ const gravityCenter = (unit) => {
           vertical * gravity
     );
     
-    gravdirect = vertical + (position < 0) * 2;
+    gravitation = vertical + (position < 0) * 2;
 }
 
-
-//Я ЭТО МЕНЯТЬ НЕ БУДУ, Я УВОЛЬНЯЮСЬ
 
 const gelJump = (unit) => {
 
     lastx = unit.tileX();
     lasty = unit.tileY();
 
-    if(getBlockBot() != Blocks.titaniumWall){
+    if(blockAtBot() != Blocks.titaniumWall){
         ajumpvel = 0;
         return;
     }
     
-    const upwards = 
-        gravdirect == 0 || 
-        gravdirect == 2 ;
+    const vertical = gravitation % 2;
     
     
-    const isSame = (upwards)
-        ? ltilex == lastx
-        : ltiley == lasty
+    const isSame = (vertical)
+        ? ltiley == lasty
+        : ltilex == lastx ;
     
-    if(isSame){
-        ajumpvel = 15;
-    } else {
-        override = upwards;
-        ajumpvel = 0;
-        jump(bjumpvel + 15);
-    }
+    ajumpvel = (isSame)
+        ? 15 : 0 ;
+        
+    if(isSame)
+        return;
+        
+    jump(bjumpvel + 15);
 }
 
 
@@ -388,7 +398,7 @@ const gelStick = (unit) => {
                 offsetY = offsets[y] ;
                 
             
-            if(getBlock(lastx + offsetX,lasty + offsetY) !== Blocks.plastaniumWall)
+            if(blockAt(lastx + offsetX,lasty + offsetY) !== Blocks.plastaniumWall)
                 return;
             
             hold = true;
@@ -412,10 +422,10 @@ const wallHolding = () => {
     }
     
     if(
-        getBlock(lastx + 1,lasty) ||
-        getBlock(lastx - 1,lasty) ||
-        getBlock(lastx,lasty + 1) ||
-        getBlock(lastx,lasty - 1)
+        blockAt(lastx + 1,lasty) ||
+        blockAt(lastx - 1,lasty) ||
+        blockAt(lastx,lasty + 1) ||
+        blockAt(lastx,lasty - 1)
     ){
         hold = true;
         stamina -= 10;
@@ -428,7 +438,7 @@ const graviFunnel = (unit) => {
     lastx = unit.tileX();
     lasty = unit.tileY();
     
-    const tile = getBlock(lastx,lasty);
+    const tile = blockAt(lastx,lasty);
     
     
     // грави воронка
@@ -454,7 +464,7 @@ const antiGravField = (unit) => {
     lastx = unit.tileX();
     lasty = unit.tileY();
 
-    if(getBlock(lastx,lasty) == Blocks.shockMine)
+    if(blockAt(lastx,lasty) == Blocks.shockMine)
         hold = true;
 };
 
