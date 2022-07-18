@@ -1,62 +1,74 @@
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 "use strict";
 
-var _require = require('Logger'),
-    logError = _require.logError;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.logError = logError;
+
+function logError(error) {
+  Log.err("[  \uFF30\uFF41\uFF52\uFF4B\uFF4F\uFF55\uFF52\u3000\uFF2D\uFF4F\uFF44  ]\n\n" + error.message + "\n\n" + error.stack + "\n");
+}
+
+},{}],2:[function(require,module,exports){
+"use strict";
+
+var _Logger = require("./Logger.js");
+
 /*
- *  by Deftry, ADI and TheEE
- */
-
-
-var indev = true;
-var isEnabled = false;
-var ButtonStyle = {
+*  by Deftry, ADI and TheEE
+*/
+let indev = true;
+let isEnabled = false;
+const ButtonStyle = {
   full: 150,
   half: 75
 };
-Log.info('Started loading of parkour mechanics');
-Log.info('Loading ui elements');
-Events.on(ClientLoadEvent, function () {
-  var height = ButtonStyle.half,
-      width = ButtonStyle.full;
-  var menu_a = new Table().bottom().left(),
-      menu_b = new Table().bottom().left();
-  var button_enable = TextButton('Enable Parkour Mode'),
-      button_hold = TextButton('Hold');
+Log.info(typeof Blocks.titaniumWall);
+Log.info("Started loading of parkour mechanics");
+Log.info("Loading ui elements");
+Events.on(ClientLoadEvent, () => {
+  const height = ButtonStyle.half,
+        width = ButtonStyle.full;
+  const menu_a = new Table().bottom().left(),
+        menu_b = new Table().bottom().left();
+  let button_enable = TextButton("Enable Parkour Mode"),
+      button_hold = TextButton("Hold");
   menu_a.y = height;
-  var button_mode = TextButton('Change Mode');
+  let button_mode = TextButton("Change Mode");
   menu_a.add(button_enable).size(width, height).padLeft(6);
-  button_enable.clicked(function () {
+  button_enable.clicked(() => {
     unit = Vars.player.unit();
 
     if (!unit || unit.type.flying) {
-      Vars.ui.announce('You cannot use parkour mode outside of a flying unit.');
+      Vars.ui.announce("You cannot use parkour mode outside of a flying unit.");
       return;
     }
 
     isEnabled = !isEnabled;
-    button_enable.setText(isEnabled ? 'Disable Parkour Mod' : 'Enable Parkour Mod');
+    button_enable.setText(isEnabled ? "Disable Parkour Mod" : "Enable Parkour Mod");
   });
   menu_b.add(button_mode).size(width, height).padLeft(6);
-  button_mode.clicked(function () {
+  button_mode.clicked(() => {
     if (mode) {
       mode = 0;
-      Vars.ui.announce('Parkour Mode');
+      Vars.ui.announce("Parkour Mode");
       return;
     }
 
-    Vars.ui.showCustomConfirm('IN DEVELOPMENT!', 'You trying to select [accent]Planet[] mode, but it is still buggy and in very development.', 'Turn this thing on!', 'Back', function () {
+    Vars.ui.showCustomConfirm("IN DEVELOPMENT!", "You trying to select [accent]Planet[] mode, but it is still buggy and in very development.", "Turn this thing on!", "Back", () => {
       mode = 1;
-      Vars.ui.announce('Planet mode');
-    }, function () {
+      Vars.ui.announce("Planet mode");
+    }, () => {
       mode = 0;
-      Vars.ui.announce('Parkour mode');
+      Vars.ui.announce("Parkour mode");
     });
   });
 
   if (Vars.mobile || indev) {
-    var button_jump = TextButton('Jump');
+    let button_jump = TextButton("Jump");
     menu_b.add(button_jump).size(width, height).padLeft(6);
-    button_jump.clicked(function () {
+    button_jump.clicked(() => {
       if (stamina > 99 && onfloor) {
         jump(bjumpvel + ajumpvel);
         stamina -= 100;
@@ -65,47 +77,43 @@ Events.on(ClientLoadEvent, function () {
   }
 
   menu_b.add(button_hold).size(width, height).padLeft(6);
-  button_hold.clicked(function () {
-    return holding = !holding;
-  });
+  button_hold.clicked(() => holding = !holding);
 
-  menu_b.visibility = function () {
-    return isEnabled;
-  };
+  menu_b.visibility = () => isEnabled;
 
-  var menus = Vars.ui.hudGroup;
+  const menus = Vars.ui.hudGroup;
   menus.addChild(menu_a);
   menus.addChild(menu_b);
 });
-Log.info('Loading variables');
-var gravity = .5; // скорость гравитации
+Log.info("Loading variables");
+let gravity = .5; // скорость гравитации
 
-var bjumpvel = 15; // скорость прыжка
+let bjumpvel = 15; // скорость прыжка
 
-var ajumpvel = 0; // доп. скорость прыжка
+let ajumpvel = 0; // доп. скорость прыжка
 
-var direction = 0; // 0 - Y, 1 - X
+let direction = 0; // 0 - Y, 1 - X
 
-var stamina = 10000; // выносливость
+let stamina = 10000; // выносливость
 
-var onfloor = false;
-var lastx;
-var lasty;
-var ltilex;
-var ltiley;
-var unit;
-var mode = 0; // 0 - обычный, 1 - центр тяжести
+let onfloor = false;
+let lastx;
+let lasty;
+let ltilex;
+let ltiley;
+let unit;
+let mode = 0; // 0 - обычный, 1 - центр тяжести
 
-var holding = false;
+let holding = false;
 /*
- *  0 : Right
- *  1 : Up
- *  2 : Left
- *  3 : Down
- */
+*  0 : Right
+*  1 : Up
+*  2 : Left
+*  3 : Down
+*/
 
-var gravitation = 3;
-var hold = false;
+let gravitation = 3;
+let hold = false;
 
 function holdOn() {
   hold = true;
@@ -115,20 +123,19 @@ function letGo() {
   hold = false;
 }
 
-Log.info('Loading main content');
+Log.info("Loading main content");
 
 function canParkour(unit) {
   return unit && !unit.type.flying;
 }
 
 function tileAt(x, y) {
-  return Vars.world.tile(x, y);
+  return Vars.world.tile(x, y) || false;
 }
 
 function blockAt(x, y) {
-  var tile = tileAt(x, y);
-  if ((tile === null || tile === void 0 ? void 0 : tile.type) == Blocks.air) return false;
-  return tile;
+  const block = tileAt(x, y);
+  return block && block.type != Blocks.air ? block : false;
 }
 
 function tileIs(x, y, type) {
@@ -143,19 +150,17 @@ function unitNear(unit, type) {
   return relativeBlock() == type;
 }
 
-var offsets = [[+1, 0], [0, +1], [-1, 0], [0, -1]];
+const offsets = [[+1, 0], [0, +1], [-1, 0], [0, -1]];
 
-var directToOffset = function directToOffset(direction) {
-  return offsets[direction];
-};
+const directToOffset = direction => offsets[direction];
 
 function relativeTile() {
-  var offset = directToOffset(gravitation);
+  const offset = directToOffset(gravitation);
   return tileAt(lastx + offset[0], lasty + offset[1]);
 }
 
 function relativeBlock() {
-  var tile = relativeTile();
+  const tile = relativeTile();
   return tile ? tile.block() : false;
 }
 
@@ -165,17 +170,17 @@ function setGravity(value) {
 }
 
 function updateHud() {
-  var percent = stamina / 100;
+  let percent = stamina / 100;
   percent = percent - percent % 1;
-  Vars.ui.showInfoToast('Stamina:' + percent + '%', .04);
+  Vars.ui.showInfoToast("Stamina:" + percent + "%", .04);
 }
 
 function isFloorSolid() {
-  var block = relativeBlock();
+  const block = relativeBlock();
   return block ? block.solid : false;
 }
 
-var updateFloor = function updateFloor() {
+const updateFloor = () => {
   onfloor = isFloorSolid();
 
   if (onfloor) {
@@ -183,8 +188,8 @@ var updateFloor = function updateFloor() {
     if (stamina > 10000) stamina = 10000;
     ltilex = lastx;
     ltiley = lasty;
-    var vertical = gravitation % 2;
-    var x = unit.vel.x,
+    const vertical = gravitation % 2;
+    let x = unit.vel.x,
         y = unit.vel.y;
     if (vertical && (gravitation === 1 ? y > 0 : y < 0)) y = 0;
     if (!vertical && (gravitation === 0 ? x > 0 : x < 0)) y = 0;
@@ -193,14 +198,14 @@ var updateFloor = function updateFloor() {
 };
 
 function updateGravity() {
-  var offset = directToOffset(gravitation);
+  const offset = directToOffset(gravitation);
   unit.vel.add(gravity * offset[0], gravity * offset[1]);
 }
 
-var jumpOffset = [[-1, 0], [0, -1], [+1, 0], [0, +1]];
+const jumpOffset = [[-1, 0], [0, -1], [+1, 0], [0, +1]];
 
 function jump(velocity) {
-  var offset = jumpOffset[gravitation];
+  const offset = jumpOffset[gravitation];
   unit.vel.add(velocity * offset[0], velocity * offset[1]);
 }
 
@@ -208,41 +213,35 @@ function gravipad(unit) {
   if (unitOn(unit, Blocks.conveyor)) gravitation = tileAt(lastx, lasty).build.rotation;
 }
 
-var gravityCenter = function gravityCenter(unit) {
-  var coordinates = [];
+const gravityCenter = unit => {
+  let coordinates = [];
   distances = [], nolock = false;
   if (onfloor) return;
   if (hold) return;
 
-  for (var _y = -15; _y < 16; _y++) {
-    for (var _x = -15; _x < 16; _x++) {
-      if (blockAt(lastx + _x, lasty + _y) == Blocks.thoriumWall) {
-        coordinates.push({
-          x: _x,
-          y: _y
-        });
-        nolock = true;
-      }
-    }
+  for (let y = -15; y < 16; y++) for (let x = -15; x < 16; x++) if (blockAt(lastx + x, lasty + y) == Blocks.thoriumWall) {
+    coordinates.push({
+      x: x,
+      y: y
+    });
+    nolock = true;
   }
 
   if (!nolock) return;
 
-  for (var c = 0; c < coordinates.length; c++) {
-    var distance = Math.sqrt((lastx + coordinates[c].x - lastx ^ 2) + (lasty + coordinates[c].y - lasty ^ 2));
+  for (let c = 0; c < coordinates.length; c++) {
+    const distance = Math.sqrt((lastx + coordinates[c].x - lastx ^ 2) + (lasty + coordinates[c].y - lasty ^ 2));
     distances.push(distance);
   }
 
-  var shortest = 0;
+  let shortest = 0;
 
-  for (var d = 0; d < distances.length; d++) {
-    if (distances[d] < distances[shortest]) shortest = d;
-  }
+  for (let d = 0; d < distances.length; d++) if (distances[d] < distances[shortest]) shortest = d;
 
-  var x = coordinates[shortest].x,
-      y = coordinates[shortest].y;
-  var vertical = gravitation % 2;
-  var position = vertical ? y : x;
+  const x = coordinates[shortest].x,
+        y = coordinates[shortest].y;
+  const vertical = gravitation % 2;
+  const position = vertical ? y : x;
   if (position === 0) return;
   unit.vel.add(!vertical * gravity, vertical * gravity);
   gravitation = vertical + (position < 0) * 2;
@@ -254,25 +253,23 @@ function gelJump(unit) {
     return;
   }
 
-  var vertical = gravitation % 2;
-  var isSame = vertical ? ltiley == lasty : ltilex == lastx;
+  const vertical = gravitation % 2;
+  const isSame = vertical ? ltiley == lasty : ltilex == lastx;
   ajumpvel = isSame ? 15 : 0;
   if (isSame) return;
   jump(bjumpvel + 15);
 }
 
 function gelStick(unit) {
-  var offsets = [-1, 0, +1];
+  const offsets = [-1, 0, +1];
 
-  for (var x = 0; x < 2; x++) {
-    for (var y = 0; y < 2; y++) {
-      var offsetX = offsets[x],
+  for (let x = 0; x < 2; x++) for (let y = 0; y < 2; y++) {
+    const offsetX = offsets[x],
           offsetY = offsets[y];
-      if (blockAt(lastx + offsetX, lasty + offsetY) !== Blocks.plastaniumWall) return;
-      holdOn();
-      if (Core.input.keyTab(Binding.pause) && stamina > 99) unit.vel.add(-offsetX * 15, -offsetY * 15);
-      return;
-    }
+    if (blockAt(lastx + offsetX, lasty + offsetY) !== Blocks.plastaniumWall) return;
+    holdOn();
+    if (Core.input.keyTab(Binding.pause) && stamina > 99) unit.vel.add(-offsetX * 15, -offsetY * 15);
+    return;
   }
 }
 
@@ -291,10 +288,10 @@ function wallHolding() {
 }
 
 function graviFunnel(unit) {
-  var block = blockAt(lastx, lasty);
+  const block = blockAt(lastx, lasty);
   if (block != Blocks.pulseConduit) return;
   holdOn();
-  var offset = directToOffset(block.build.rotation);
+  const offset = directToOffset(block.build.rotation);
   unit.vel.add(-.55 * offset[0], -.55 * offset[1]);
 }
 
@@ -327,14 +324,14 @@ function update() {
     checkInteractables(unit);
     if (!hold && mode == 0) updateGravity();
   } catch (error) {
-    logError(error);
+    (0, _Logger.logError)(error);
   }
 
   letGo();
 }
 
-Log.info('Running update task');
-Timer.schedule(function () {
+Log.info("Running update task");
+Timer.schedule(() => {
   if (!isEnabled) return;
   unit = Vars.player.unit();
   if (!canParkour(unit)) return;
@@ -344,4 +341,6 @@ Timer.schedule(function () {
   if (hold || mode != 1) return;
   gravityCenter(unit);
 }, 0, .02);
-Log.info('Done initialisation of parkour-mod.');
+Log.info("Done initialisation of parkour-mod.");
+
+},{"./Logger.js":1}]},{},[2]);

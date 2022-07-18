@@ -1,5 +1,5 @@
 
-const { logError } = require('Logger');
+import { logError } from './Logger.js'
 
 
 /*
@@ -13,6 +13,10 @@ const ButtonStyle = {
     full : 150 ,
     half : 75
 }
+
+
+Log.info(typeof Blocks.titaniumWall)
+
 
 
 Log.info('Started loading of parkour mechanics');
@@ -167,17 +171,15 @@ function canParkour(unit){
 
 
 function tileAt(x,y){
-    return Vars.world.tile(x,y);
+    return Vars.world.tile(x,y) || false;
 }
 
 function blockAt(x,y){
     
-    const tile = tileAt(x,y);
-    
-    if(tile?.type == Blocks.air)
-        return false;
-        
-    return tile;
+    const block = tileAt(x,y);
+
+    return (block && block.type != Blocks.air)
+        ? block : false ;
 }
 
 function tileIs(x,y,type){
