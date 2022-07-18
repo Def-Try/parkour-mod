@@ -1,5 +1,5 @@
 
-const { logError } = require('Logger');
+const { logError , info } = require('Logger');
 
 
 /*
@@ -9,117 +9,146 @@ const { logError } = require('Logger');
 let indev = true ;
 let isEnabled = false;
 
-const ButtonStyle = {
-    full : 150 ,
-    half : 75
+
+const needsJumpUI = 
+    Vars.mobile || indev;
+
+
+let button_enable;
+
+
+info([
+    'Started loading of parkour mechanics' ,
+    'Loading ui elements'
+])
+
+function toggleMod(){
+
+    unit = Vars.player.unit();
+    
+    if(!unit || unit.type.flying){
+        Vars.ui.announce('You cannot use parkour mode outside of a flying unit.');
+        return;
+    }
+    
+    isEnabled = ! isEnabled;
+    
+    button_enable.setText(isEnabled 
+        ? 'Disable Parkour Mod'
+        : 'Enable Parkour Mod' );
 }
 
-
-Log.info(typeof Blocks.titaniumWall)
-
-
-
-Log.info('Started loading of parkour mechanics');
-Log.info('Loading ui elements');
-
-Events.on(ClientLoadEvent,() => {
+function toggleMode(){
     
-    const
-        height = ButtonStyle.half ,
-        width = ButtonStyle.full ;
-
-    const
-        menu_a = new Table().bottom().left() ,
-        menu_b = new Table().bottom().left() ;
-    
-    let 
-        button_enable = TextButton('Enable Parkour Mode') ,
-        button_hold = TextButton('Hold') ;
-    
-    menu_a.y = height;
-    
-    let button_mode = TextButton('Change Mode');
-    
-    menu_a
-    .add(button_enable)
-    .size(width,height)
-    .padLeft(6);
-    
-    button_enable.clicked(() => {
-        
-        unit = Vars.player.unit();
-        
-        if(!unit || unit.type.flying){
-            Vars.ui.announce('You cannot use parkour mode outside of a flying unit.');
-            return;
-        }
-        
-        isEnabled = ! isEnabled;
-        
-        button_enable.setText(isEnabled 
-            ? 'Disable Parkour Mod'
-            : 'Enable Parkour Mod' );
-    });
-    
-    menu_b
-    .add(button_mode)
-    .size(width,height)
-    .padLeft(6);
-    
-    button_mode.clicked(() => {
-        
-        if(mode){
-            mode = 0;
-            Vars.ui.announce('Parkour Mode');
-            return;
-        }
-        
-        Vars.ui.showCustomConfirm(
-            'IN DEVELOPMENT!' ,
-            'You trying to select [accent]Planet[] mode, but it is still buggy and in very development.' ,
-            'Turn this thing on!' ,
-            'Back' ,
-            () => {
-                mode = 1;
-                Vars.ui.announce('Planet mode');
-            },
-            () => {
-                mode = 0;
-                Vars.ui.announce('Parkour mode');
-            });
-    });
-
-    if(Vars.mobile || indev){
-        
-        let button_jump = TextButton('Jump');
-        
-        menu_b
-        .add(button_jump)
-        .size(width,height)
-        .padLeft(6);
-        
-        button_jump.clicked(() => {
-            if(stamina > 99 && onfloor){ 
-                jump(bjumpvel + ajumpvel); 
-                stamina -= 100; 
-            }
-        });
+    if(mode){
+        mode = 0;
+        Vars.ui.announce('Parkour Mode');
+        return;
     }
+    
+    Vars.ui.showCustomConfirm(
+        'IN DEVELOPMENT!' ,
+        'You trying to select [accent]Planet[] mode, but it is still buggy and in very development.' ,
+        'Turn this thing on!' ,
+        'Back' ,
+        () => {
+            mode = 1;
+            Vars.ui.announce('Planet mode');
+        },
+        () => {
+            mode = 0;
+            Vars.ui.announce('Parkour mode');
+        });
+}
 
-    menu_b
-    .add(button_hold)
-    .size(width,height)
+function table(){
+    
+    const table = new Table()
+        .bottom()
+        .left();
+        
+    Vars.ui.hudGroup.addChild(table);
+    
+    return table;
+}
+
+function button(options){
+    
+    const { menu , name , click } = options;
+    
+    const button = TextButton(name);
+    
+    menu
+    .add(button)
+    .size(150,75)
     .padLeft(6);
     
-    button_hold.clicked(() => holding = ! holding);
-
-    menu_b.visibility = () => isEnabled;
-
-    const menus = Vars.ui.hudGroup;
+    button.clicked(click);
     
-    menus.addChild(menu_a);
-    menus.addChild(menu_b);
-});
+    return button;
+}
+
+function pressJump(){
+    
+    if(stamina < 100)
+        return;
+        
+    if(!onfloor)
+        return;
+    
+    jump(bjumpvel + ajumpvel); 
+
+    stamina -= 100; 
+}
+
+function toggleHold(){
+    holding = ! holding;
+}
+
+function buildHUD(){
+    
+    buildMainMenu();
+    buildSubMenu();
+}
+
+function buildMainMenu(){
+    
+    const menu = table();
+    menu.y = 75;
+    
+    button_enable = button({
+        menu : menu ,
+        name : 'Enable Parkour Mode' ,
+        click : toggleMod
+    });
+}
+
+function buildSubMenu(){
+    
+    const menu = table() ;
+    menu.visibility = () => isEnabled;
+    
+    button({
+        menu : menu ,
+        name : 'Change Mode' ,
+        click : toggleMode
+    });
+
+    if(needsJumpUI)
+        button({
+            menu : menu ,
+            name : 'Jump' ,
+            click : pressJump
+        });
+        
+    button({
+        menu : menu ,
+        name : 'Hold' ,
+        click : toggleHold
+    });
+}
+
+Events.on(ClientLoadEvent,buildHUD);
 
 
 Log.info('Loading variables');
@@ -317,18 +346,27 @@ function gravipad(unit){
 }
 
 
-const gravityCenter = (unit) => {
-    
-    let 
-        coordinates = [] ;
-        distances = [] ,
-        nolock = false ;
+const square = (value) =>
+    value * value;
 
+function delta(ax,ay,bx,by){
+    return Math.sqrt(
+        square(ax + bx) +
+        square(ay + by)
+    );
+}
+
+
+function gravityCenter(unit){
+    
     if(onfloor)
         return;
         
     if(hold)
         return
+
+    const coordinates = [];
+    let nolock = false;
 
     for(let y = -15;y < 16;y++)
         for(let x = -15;x < 16;x++)
@@ -339,12 +377,17 @@ const gravityCenter = (unit) => {
 
     if(!nolock)
         return;
+        
+    const distances = [];
 
     for(let c = 0;c < coordinates.length;c++){
         
-        const distance = Math.sqrt(
-            ((lastx + coordinates[c].x - lastx) ^ 2) + 
-            ((lasty + coordinates[c].y - lasty) ^ 2) );
+        const cord = coordinates[c];
+        
+        const distance = delta(
+            cord.x , cord.y ,
+            lastx , lasty
+        );
         
         distances.push(distance);
     }

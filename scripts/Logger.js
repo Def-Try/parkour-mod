@@ -11,8 +11,11 @@ function logError(error){
 }
 
 
-
-
-exports = { 
-    logError : logError
+function info(values){
+    Log.info(values.join('\n'));
 }
+
+
+
+exports.logError = logError;
+exports.info = info;
