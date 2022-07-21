@@ -1,26 +1,64 @@
-![Title yooo](https://user-images.githubusercontent.com/71168720/165684565-b8f76a46-07a1-432c-b211-87536cf64f60.png)
-# Parkour mod
-A mod that adds new movement mechanics to Mindustry. W.I.P.
 
-# What mechanics does it adds?
-WALL HOLDING - Hold SPACE. Using STAMINA to hold on walls.
+<div align = center>
 
-JUMP - Press SPACE. Just a regular mod jump.
+<br>
 
-GRAVITY - Enable mod. Pushes you to direction of gravity.
+![Banner]
 
-JUMP PAD - small titanium wall. If you fall on this pad from height, you will bounce back. If you step on this pad and jump, you will jump higher than normal.
+[![Badge License]][License]   ![Badge Status]
 
-STICKY GEL - small plastanium wall. You can walk on walls and bounce off.
+<br>
 
-GRAVITY PAD - standart conveyor. It changes your gravity direction to direction of conveyor.
+### *Movement Mechanics for [Mindustry]*
 
-GRAVITATIONAL FUNNEL - titanium conduit. Slowly pushes you in direction of conduit. Still in development.
+<br>
 
-ANTI GRAVITY FIELD - shock mines. Just disables gravity for you while in field.
+---
 
-# How to play it on mobile?
-You have two buttons - one with server icon, other with "up" icon. Press "up" icon button to jump
+[![Button Mechanics]][Mechanics]
 
-# WARNING!
-Please, do not toggle parkour in flying unit and/or don't let unit fall to the void(black tiles outside of map)! It crashes the game.
+---
+
+<br>
+<br>
+
+</div>
+
+## Mobile Support
+
+On mobile you have an additional button, <br>
+marked with a ⬆, that is used for jumping.
+
+<br>
+<br>
+
+## Caution 
+
+*The following things can crash your game.*
+
+- Toggling parkour mode in a flying unit
+
+- Falling into the void / outside the map
+
+<br>
+
+
+<!----------------------------------------------------------------------------->
+
+[Banner]: https://user-images.githubusercontent.com/71168720/165684565-b8f76a46-07a1-432c-b211-87536cf64f60.png
+[Mindustry]: https://mindustrygame.github.io/
+
+[Mechanics]: Documentation/Mechanics.md
+[License]: LICENSE
+
+
+<!----------------------------------[ Badges ]--------------------------------->
+
+[Badge License]: https://img.shields.io/badge/License-MIT-b79316.svg?style=for-the-badge&labelColor=dfb317
+[Badge Status]: https://img.shields.io/badge/Status-Work_In_Progress-1a6e95.svg?style=for-the-badge&labelColor=1E8CBE&logoColor=white&logo=GoogleAnalytics
+
+
+
+<!---------------------------------[ Buttons ]--------------------------------->
+
+[Button Mechanics]: https://img.shields.io/badge/Mechanics-0085CA?style=for-the-badge&logoColor=white&logo=ActiGraph
