@@ -1,5 +1,44 @@
+const { logError , object ,info } = require('Logger');
 
-const { logError , info } = require('Logger');
+
+
+const { blockAt , tileIs , tileAt } = require('Tile');
+
+const Gravity = require('Gravity');
+
+
+const offsets = [
+    [ +1 ,  0 ] ,
+    [  0 , +1 ] ,
+    [ -1 ,  0 ] ,
+    [  0 , -1 ]
+]
+
+const directToOffset = (direction) =>
+    offsets[direction];
+
+function relativeTile(){
+    
+    Log.info('Gravity: ' + Gravity.direction);
+    
+    return;
+    
+    const offset = directToOffset(Gravity.direction);
+    
+    return tileAt(
+        lastx + offset[0] ,
+        lasty + offset[1]
+    );
+}
+
+function relativeBlock(){
+    
+    const tile = relativeTile();
+    
+    return (tile)
+        ? tile.block()
+        : false ;
+}
 
 
 /*
@@ -177,29 +216,29 @@ Events.on(ClientLoadEvent,buildHUD);
 
 Log.info('Loading variables');
 
-let gravity = .5; // скорость гравитации
 let bjumpvel = 15; // скорость прыжка
 let ajumpvel = 0; // доп. скорость прыжка
-let direction = 0; // 0 - Y, 1 - X
 let stamina = 10000; // выносливость
-let onfloor = false; 
 let lastx;
 let lasty;
 let ltilex;
 let ltiley;
 let unit;
-let mode = 0; // 0 - обычный, 1 - центр тяжести
-let holding = false;
-
 
 /*
- *  0 : Right
- *  1 : Up
- *  2 : Left
- *  3 : Down
+ *  Gravity
+ *  0 : Downwards
+ *  1 : Central 
  */
 
-let gravitation = 3;
+let mode = 0;
+
+let 
+    holding = false ,
+    onfloor = false ; 
+
+
+
 
 
 
@@ -223,21 +262,7 @@ function canParkour(unit){
 }
 
 
-function tileAt(x,y){
-    return Vars.world.tile(x,y) || false;
-}
 
-function blockAt(x,y){
-    
-    const block = tileAt(x,y);
-
-    return (block && block.type != Blocks.air)
-        ? block : false ;
-}
-
-function tileIs(x,y,type){
-    return tileAt(x,y) == type;
-}
 
 function unitOn(unit,type){
     return tileIs(unit.tileX(),unit.tileY(),type);
@@ -247,38 +272,11 @@ function unitNear(unit,type){
     return relativeBlock() == type;
 }
 
-const offsets = [
-    [ +1 ,  0 ] ,
-    [  0 , +1 ] ,
-    [ -1 ,  0 ] ,
-    [  0 , -1 ]
-]
 
-const directToOffset = (direction) =>
-    offsets[direction];
-
-function relativeTile(){
-    
-    const offset = directToOffset(gravitation);
-    
-    return tileAt(
-        lastx + offset[0] ,
-        lasty + offset[1]
-    );
-}
-
-function relativeBlock(){
-    
-    const tile = relativeTile();
-    
-    return (tile)
-        ? tile.block()
-        : false ;
-}
 
 
 function setGravity(value){
-    gravity = value; 
+    Gravity.strength = value; 
     jump = -value * 10
 }
 
@@ -292,7 +290,7 @@ function updateHud(){
     
     percent = percent - percent % 1;
     
-    label_stamina.setText('Stamina:' + percent + '%');
+    label_stamina.setText('Stamina: ' + percent + '%');
 }
 
 
@@ -320,16 +318,16 @@ const updateFloor = () => {
         ltilex = lastx;
         ltiley = lasty;
         
-        const vertical = gravitation % 2;
+        const vertical = Gravity.direction % 2;
         
         let
             x = unit.vel.x ,
             y = unit.vel.y ;
         
-        if(vertical && (gravitation === 1 ? y > 0 : y < 0))
+        if(vertical && (Gravity.direction === 1 ? y > 0 : y < 0))
             y = 0;
         
-        if(!vertical && (gravitation === 0 ? x > 0 : x < 0))
+        if(!vertical && (Gravity.direction === 0 ? x > 0 : x < 0))
             y = 0;
                 
         
@@ -340,11 +338,11 @@ const updateFloor = () => {
 
 function updateGravity(){
     
-    const offset = directToOffset(gravitation);
+    const offset = directToOffset(Gravity.direction);
     
     unit.vel.add(
-        gravity * offset[0] ,
-        gravity * offset[1] 
+        Gravity.strength * offset[0] ,
+        Gravity.strength * offset[1] 
     );
 }
 
@@ -358,7 +356,7 @@ const jumpOffset = [
 
 function jump(velocity){
     
-    const offset = jumpOffset[gravitation];
+    const offset = jumpOffset[Gravity.direction];
     
     unit.vel.add(
         velocity * offset[0] ,
@@ -369,7 +367,7 @@ function jump(velocity){
 
 function gravipad(unit){
     if(unitOn(unit,Blocks.conveyor))
-        gravitation = tileAt(lastx,lasty).build.rotation;
+        Gravity.direction = tileAt(lastx,lasty).build.rotation;
 }
 
 
@@ -426,7 +424,7 @@ function gravityCenter(){
         x = coordinates[shortest].x ,
         y = coordinates[shortest].y ;
         
-    const vertical = gravitation % 2;
+    const vertical = Gravity.direction % 2;
     
     const position = vertical
         ? y : x ;
@@ -435,11 +433,11 @@ function gravityCenter(){
         return;
     
     unit.vel.add(
-        ! vertical * gravity ,
-          vertical * gravity
+        ! vertical * Gravity.strength ,
+          vertical * Gravity.strength
     );
     
-    gravitation = vertical + (position < 0) * 2;
+    Gravity.direction = vertical + (position < 0) * 2;
 }
 
 
@@ -450,7 +448,7 @@ function gelJump(unit){
         return;
     }
     
-    const vertical = gravitation % 2;
+    const vertical = Gravity.direction % 2;
     
     
     const isSame = (vertical)
