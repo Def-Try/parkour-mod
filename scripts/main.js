@@ -109,6 +109,7 @@ function buildHUD(){
     
     buildMainMenu();
     buildSubMenu();
+    buildStaminaMenu();
 }
 
 function buildMainMenu(){
@@ -146,6 +147,29 @@ function buildSubMenu(){
         name : 'Hold' ,
         click : toggleHold
     });
+}
+
+let label_stamina;
+
+function buildStaminaMenu(){
+    
+    Log.info('[cyan]Builing Stamina Menu')
+    
+    const menu_stamina = new Table()
+        .left()
+        .bottom();
+        
+    menu_stamina.visibility = () => isEnabled;
+    menu_stamina.y = 400;
+    
+    label_stamina = Label('');
+    label_stamina.setStyle(Styles.outlineLabel);
+    
+    menu_stamina.add(label_stamina)
+    .size(150,75)
+    .padLeft(6);
+        
+    Vars.ui.hudGroup.addChild(menu_stamina);
 }
 
 Events.on(ClientLoadEvent,buildHUD);
@@ -261,11 +285,14 @@ function setGravity(value){
 
 function updateHud(){
     
+    if(!canWork())
+        return;
+    
     let percent = stamina / 100;
     
     percent = percent - percent % 1;
     
-    Vars.ui.showInfoToast('Stamina:' + percent + '%',.04);
+    label_stamina.setText('Stamina:' + percent + '%');
 }
 
 
@@ -357,13 +384,10 @@ function delta(ax,ay,bx,by){
 }
 
 
-function gravityCenter(unit){
+function gravityCenter(){
     
-    if(onfloor)
+    if(onfloor || hold)
         return;
-        
-    if(hold)
-        return
 
     const coordinates = [];
     let nolock = false;
@@ -556,30 +580,36 @@ function update(){
     letGo();
 }
 
+function player(){
+    return Vars.player.unit()
+}
 
-Log.info('Running update task');
+function canWork(){
+    return isEnabled && canParkour(player());
+}
 
-
-Timer.schedule(() => {
+function tick(){
     
-    if(!isEnabled)
-        return
-        
-    unit = Vars.player.unit();
-    
-    if(!canParkour(unit))
+    if(!canWork())
         return;
-
+        
+    unit = player();
+        
     update();
-    updateHud();
     updateFloor();
 
     if(hold || mode != 1)
         return;
 
-    gravityCenter(unit);
-    
-},0,.02);
+    gravityCenter();
+}
 
+
+Log.info('Running update task');
+
+
+Timer.schedule(tick,0,.02);
+
+Timer.schedule(updateHud,0,.1);
 
 Log.info('Done initialisation of parkour-mod.');
