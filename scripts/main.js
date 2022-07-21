@@ -1,8 +1,10 @@
 
 {
     const { blockAt , tileIs , tileAt } = require('Tile');
-    const { exception , info ,log } = require('Logger');
+    const { exception , log , debug } = require('Logger');
     const { button , table } = require('UI');
+    const { delta } = require('Math');
+    const { jump } = require('Jump');
 
 
 
@@ -20,10 +22,6 @@
 
     function relativeTile(){
         
-        log('Gravity:',Gravity.direction);
-        
-        return;
-        
         const offset = directToOffset(Gravity.direction);
         
         return tileAt(
@@ -40,6 +38,17 @@
             ? tile.block()
             : false ;
     }
+    
+    function isFloorSolid(){
+        
+        const block = relativeBlock();
+        
+        return (block)
+            ? block.solid
+            : false ;
+    }
+    
+    
 
 
     /*
@@ -107,7 +116,7 @@
         if(!onfloor)
             return;
         
-        jump(bjumpvel + ajumpvel); 
+        jump(unit,bjumpvel + ajumpvel); 
 
         stamina -= 100; 
     }
@@ -243,12 +252,6 @@
 
 
 
-    function setGravity(value){
-        Gravity.strength = value; 
-        jump = -value * 10
-    }
-
-
     function updateHud(){
         
         if(!canWork())
@@ -263,14 +266,7 @@
 
 
 
-    function isFloorSolid(){
-        
-        const block = relativeBlock();
-        
-        return (block)
-            ? block.solid
-            : false ;
-    }
+    
 
     const updateFloor = () => {
         
@@ -315,22 +311,7 @@
     }
 
 
-    const jumpOffset = [
-        [ -1 ,  0 ] ,
-        [  0 , -1 ] ,
-        [ +1 ,  0 ] ,
-        [  0 , +1 ]
-    ]
 
-    function jump(velocity){
-        
-        const offset = jumpOffset[Gravity.direction];
-        
-        unit.vel.add(
-            velocity * offset[0] ,
-            velocity * offset[1]
-        );
-    }
 
 
     function gravipad(unit){
@@ -339,15 +320,9 @@
     }
 
 
-    const square = (value) =>
-        value * value;
+    
 
-    function delta(ax,ay,bx,by){
-        return Math.sqrt(
-            square(ax + bx) +
-            square(ay + by)
-        );
-    }
+    
 
 
     function gravityCenter(){
@@ -429,7 +404,7 @@
         if(isSame)
             return;
             
-        jump(bjumpvel + 15);
+        jump(unit,bjumpvel + 15);
     }
 
 
@@ -532,7 +507,7 @@
             lasty = unit.tileY();
 
             if(Core.input.keyTap(Binding.pause) && stamina > 99 && onfloor){
-                jump(bjumpvel + ajumpvel);
+                jump(unit,bjumpvel + ajumpvel);
                 stamina -= 100;
             }
 

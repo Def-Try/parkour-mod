@@ -1,6 +1,9 @@
 
 (() => {
     
+    const Debug = require('Debug');
+    
+    
     function exception(error){
         Log.err(
             '[  Ｐａｒｋｏｕｒ　Ｍｏｄ  ]\n\n' + 
@@ -12,22 +15,36 @@
     }
 
 
-    function log(a,b,c,d,e,f){
-
-        const values = [ a , b , c , d , e , f ];
-
+    function parse(values){
+        
         let value;
 
         while(!(value = values.pop()))
             continue;
 
-        values.push(value);    
-
-        info(values);
+        values.push(value); 
+        
+        return values.join(' ');
     }
 
-    function info(values){
-        Log.log(Log.LogLevel.none,'[#1e8cbe] Parkour  [#DDDDDD]' + values.join(' '));
+    function debug(a,b,c,d,e,f){
+        debugText(parse([ a , b , c , d , e , f ]));
+    }
+
+    function log(a,b,c,d,e,f){
+        logText(parse([ a , b , c , d , e , f ]));
+    }
+    
+    function debugText(text){
+        print('[#dfb317] Parkour  [#DDDDDD]' + text);
+    }
+    
+    function logText(text){
+        print('[#1e8cbe] Parkour  [#DDDDDD]' + text);
+    }
+
+    function print(text){
+        Log.log(Log.LogLevel.none,text);
     }
 
 
@@ -67,7 +84,10 @@
 
 
     exports.exception = exception;
-    exports.info = info;
     exports.log = log;
+    
+    exports.debug = Debug 
+        ? debug 
+        : () => {};
     
 })();
