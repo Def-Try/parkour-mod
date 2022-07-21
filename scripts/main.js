@@ -110,6 +110,8 @@
 
     function pressJump(){
         
+        debug('Pressed Jump')
+        
         if(stamina < 100)
             return;
             
@@ -386,7 +388,7 @@
 
     function gelJump(unit){
 
-        if(unitNear(unit,Blocks.titaniumWall)){
+        if(!unitNear(unit,Blocks.titaniumWall)){
             ajumpvel = 0;
             return;
         }
