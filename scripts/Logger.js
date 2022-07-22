@@ -69,13 +69,13 @@
 
     function layer(object,depth,string){
         
-        string = string || '';
+        string = string || '{';
         
         if(depth > 0)
-            for(let key in object.prototype)
+            for(let key in object)
                 string += '\n' + valueToString(key,object[key],depth);
             
-        return string;
+        return string + '}';
     }
 
     function object(object,depth){
@@ -84,6 +84,7 @@
 
 
     exports.exception = exception;
+    exports.object = object;
     exports.log = log;
     
     exports.debug = Debug 

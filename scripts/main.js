@@ -1,15 +1,19 @@
+/*
+ *  Original code had been written by Deftry, ADI and TheEE
+ */
 
+(() => {
 
-{
     const { blockAt , tileIs , tileAt } = require('Tile');
     const { exception , log , debug } = require('Logger');
-    const { button , table } = require('UI');
+    const Interface = require('Interface');
     const { delta } = require('Math');
     const { jump } = require('Jump');
-
-
-
     const Gravity = require('Gravity');
+    const Player = require('Player');
+    const Debug = require('Debug');
+    const Mod = require('Mod');
+
 
     const offsets = [
         [ +1 ,  0 ] ,
@@ -49,177 +53,23 @@
             : false ;
     }
     
+    function unitNear(unit,type){
+        return relativeBlock() == type;
+    }
     
 
 
-    /*
-     *  by Deftry, ADI and TheEE
-     */
-
-    let indev = true ;
-    let isEnabled = false;
-
-
-    const needsJumpUI = 
-        Vars.mobile || indev;
-
-
-    let button_enable;
-
-
-    log('Started loading of parkour mechanics');
-    log('Loading ui elements');
-
-    function toggleMod(){
-
-        unit = Vars.player.unit();
-        
-        if(!unit || unit.type.flying){
-            Vars.ui.announce('You cannot use parkour mode outside of a flying unit.');
-            return;
-        }
-        
-        isEnabled = ! isEnabled;
-        
-        button_enable.setText(isEnabled 
-            ? 'Disable Parkour Mod'
-            : 'Enable Parkour Mod' );
-    }
-
-    function toggleMode(){
-        
-        if(mode){
-            mode = 0;
-            Vars.ui.announce('Parkour Mode');
-            return;
-        }
-        
-        Vars.ui.showCustomConfirm(
-            'IN DEVELOPMENT!' ,
-            'You trying to select [accent]Planet[] mode, but it is still buggy and in very development.' ,
-            'Turn this thing on!' ,
-            'Back' ,
-            () => {
-                mode = 1;
-                Vars.ui.announce('Planet mode');
-            },
-            () => {
-                mode = 0;
-                Vars.ui.announce('Parkour mode');
-            });
-    }
-
-    function pressJump(){
-        
-        debug('Pressed Jump')
-        
-        if(stamina < 100)
-            return;
-            
-        if(!onfloor)
-            return;
-        
-        jump(unit,bjumpvel + ajumpvel); 
-
-        stamina -= 100; 
-    }
-
-    function toggleHold(){
-        holding = ! holding;
-    }
-
-    function buildHUD(){
-        
-        buildMainMenu();
-        buildSubMenu();
-        buildStaminaMenu();
-    }
-
-    function buildMainMenu(){
-        
-        const menu = table();
-        menu.y = 75;
-        
-        button_enable = button({
-            menu : menu ,
-            name : 'Enable Parkour Mode' ,
-            click : toggleMod
-        });
-    }
-
-    function buildSubMenu(){
-        
-        const menu = table() ;
-        menu.visibility = () => isEnabled;
-        
-        button({
-            menu : menu ,
-            name : 'Change Mode' ,
-            click : toggleMode
-        });
-
-        if(needsJumpUI)
-            button({
-                menu : menu ,
-                name : 'Jump' ,
-                click : pressJump
-            });
-            
-        button({
-            menu : menu ,
-            name : 'Hold' ,
-            click : toggleHold
-        });
-    }
-
-    let label_stamina;
-
-    function buildStaminaMenu(){
-        
-        log('Builing Stamina Menu')
-        
-        const menu_stamina = new Table()
-            .left()
-            .bottom();
-            
-        menu_stamina.visibility = () => isEnabled;
-        menu_stamina.y = 400;
-        
-        label_stamina = Label('');
-        label_stamina.setStyle(Styles.outlineLabel);
-        
-        menu_stamina.add(label_stamina)
-        .size(150,75)
-        .padLeft(6);
-            
-        Vars.ui.hudGroup.addChild(menu_stamina);
-    }
-
-    Events.on(ClientLoadEvent,buildHUD);
+    Events.on(ClientLoadEvent,Interface.build);
 
 
     log('Loading variables');
 
-    let bjumpvel = 15; // скорость прыжка
-    let ajumpvel = 0; // доп. скорость прыжка
-    let stamina = 10000; // выносливость
+    
     let lastx;
     let lasty;
     let ltilex;
     let ltiley;
     let unit;
-
-    /*
-     *  Gravity
-     *  0 : Downwards
-     *  1 : Central 
-     */
-
-    let mode = 0;
-
-    let 
-        holding = false ,
-        onfloor = false ; 
 
 
     let hold = false;
@@ -237,21 +87,13 @@
     log('Loading main content');
 
 
-    function canParkour(unit){
-        return unit && ! unit.type.flying;
-    }
-
-
 
 
     function unitOn(unit,type){
         return tileIs(unit.tileX(),unit.tileY(),type);
     }
 
-    function unitNear(unit,type){
-        return relativeBlock() == type;
-    }
-
+    
 
 
 
@@ -260,27 +102,20 @@
         if(!canWork())
             return;
         
-        let percent = stamina / 100;
-        
-        percent = percent - percent % 1;
-        
-        label_stamina.setText('Stamina: ' + percent + '%');
+        Interface.updateStamina();
     }
 
 
-
-    
-
     const updateFloor = () => {
         
-        onfloor = isFloorSolid();
+        Player.onfloor = isFloorSolid();
         
-        if(onfloor){
+        if(Player.onfloor){
             
-            stamina += 100;
+            Player.stamina += 100;
             
-            if(stamina > 10000)
-                stamina = 10000;
+            if(Player.stamina > 10000)
+                Player.stamina = 10000;
             
             ltilex = lastx;
             ltiley = lasty;
@@ -330,7 +165,7 @@
 
     function gravityCenter(){
         
-        if(onfloor || hold)
+        if(Player.onfloor || hold)
             return;
 
         const coordinates = [];
@@ -390,7 +225,7 @@
     function gelJump(unit){
 
         if(!unitNear(unit,Blocks.titaniumWall)){
-            ajumpvel = 0;
+            Player.ajumpvel = 0;
             return;
         }
         
@@ -401,13 +236,13 @@
             ? ltiley == lasty
             : ltilex == lastx ;
         
-        ajumpvel = (isSame)
+        Player.ajumpvel = (isSame)
             ? 15 : 0 ;
             
         if(isSame)
             return;
             
-        jump(unit,bjumpvel + 15);
+        jump(unit,Player.bjumpvel + 15);
     }
 
 
@@ -427,11 +262,16 @@
         
                 holdOn();
         
-                if(Core.input.keyTab(Binding.pause) && stamina > 99)
-                    unit.vel.add(
-                        - offsetX * 15 ,
-                        - offsetY * 15
-                    );
+                if(!Core.input.keyTab(Binding.pause))
+                    continue;
+                
+                if(!Player.hasStamina())
+                    continue;
+                
+                unit.vel.add(
+                    - offsetX * 15 ,
+                    - offsetY * 15
+                );
         
                 return;
             }
@@ -447,15 +287,17 @@
 
     function wallHolding(){
         
-        if(!holding)
+        if(!Player.holding)
             return;
             
-        if(stamina < 100)
-            return letGo();
+        if(!Player.hasStamina()){
+            letGo();
+            return;
+        }
         
         if(nextToAnyBlock()){
             holdOn();
-            stamina -= 10;
+            Player.stamina -= 10;
         }
     }
 
@@ -499,24 +341,26 @@
 
     function update(){
         
-        unit = Vars.player.unit();
+        unit = Player.unit();
         
-        if(!canParkour(unit))
+        if(!Player.canParkour())
             return;
-        
+            
         try {
+            
+            Player.updatePosition();
             
             lastx = unit.tileX();
             lasty = unit.tileY();
 
-            if(Core.input.keyTap(Binding.pause) && stamina > 99 && onfloor){
-                jump(unit,bjumpvel + ajumpvel);
-                stamina -= 100;
+            if(Core.input.keyTap(Binding.pause) && Player.hasStamina() && Player.onfloor){
+                jump(unit,Player.bjumpvel + Player.ajumpvel);
+                Player.stamina -= 100;
             }
 
             checkInteractables(unit);
             
-            if(!hold && mode == 0)
+            if(!hold && Mod.downwardGravity())
                 updateGravity();
 
         } catch(error) { exception(error) }
@@ -524,12 +368,8 @@
         letGo();
     }
 
-    function player(){
-        return Vars.player.unit()
-    }
-
     function canWork(){
-        return isEnabled && canParkour(player());
+        return Mod.enabled && Player.canParkour();
     }
 
     function tick(){
@@ -537,25 +377,24 @@
         if(!canWork())
             return;
             
-        unit = player();
+        unit = Player.unit();
             
         update();
         updateFloor();
 
-        if(hold || mode != 1)
+        if(hold || Mod.downwardGravity())
             return;
 
         gravityCenter();
     }
 
 
-    log('Running update task');
-
+    log('Starting schedulers');
 
     Timer.schedule(tick,0,.02);
 
     Timer.schedule(updateHud,0,.1);
 
-    log('Done initialisation of parkour-mod.');
+    log('Finished setup');
 
-}
+})();
