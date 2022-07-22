@@ -1,9 +1,21 @@
-name: "parkour-mod"
-displayName: "[orange]Parkour[] mod"
-author: "Benry/Deftry"
-description: "This mod adds some new movement mechanics, gravity and jump to player. WIP, report all bugs to Benry#5935"
-version: "2.5"
-minGameVersion: "136"
-dependencies: []
-repo: "Def-Try/parkour-mod"
-hidden: true
+{
+    displayName : "[orange]Parkour[] mod"
+    author : Benry/Deftry
+    repo : Def-Try/parkour-mod
+    name : parkour-mod
+
+
+    description:
+        '''
+        
+        This mod adds some new movement mechanics, gravity and jump to player.
+        
+        WIP, report all bugs to Benry#5935
+        
+        '''
+    
+    minGameVersion : 136
+    version :  2.5
+    
+    hidden : true
+}
