@@ -1,8 +1,5 @@
 
-module.exports = this._Gravity || init(this);
-
-
-function init(global){
+module.exports = (() => {
 
     /*
      *  0 : Right
@@ -25,8 +22,8 @@ function init(global){
 
     Gravity.__defineSetter__('direction',(value) => direction = value);
     Gravity.__defineSetter__('strength',(value) => strength = value);
-
-
-    return global._Gravity = Gravity;
-
-}
+    
+    
+    return Gravity;
+    
+})();

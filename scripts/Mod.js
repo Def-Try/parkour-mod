@@ -1,14 +1,15 @@
 
-module.exports = this._Mod || init(this);
-
-
-function init(global){
-
+module.exports = (() => {
+    
     const { log , object } = require('Logger');
-    const Interface = require('Interface');
     const Player = require('Player');
 
-    log('Interface:',object(Interface));
+    let a = '';
+
+    for(let key in this)
+        a += key + '   ';
+        
+    log('This',a);
     
     
     /*
@@ -20,6 +21,7 @@ function init(global){
     let mode = 0;
     
     let enabled = false;
+    const listeners_onToggle = new Set;
     
 
     function inParkour(){
@@ -41,7 +43,7 @@ function init(global){
         
         enabled = ! enabled;
 
-        Interface.updateEnableButton();
+        listeners_onToggle.forEach((listener) => listener());
     }
     
     function toggleMode(){
@@ -68,6 +70,15 @@ function init(global){
         mode = 1;
         Vars.ui.announce('Planet mode');
     }
+    
+    
+    function onToggle(listener){
+        listeners_onToggle.add(listener);
+    }
+    
+    function downwardGravity(){
+        return mode === 0;
+    }
 
 
     const Mod = {
@@ -76,7 +87,9 @@ function init(global){
         onPlanet : onPlanet ,
         parkour : parkour ,
         toggle : toggle ,
-        planet : planet
+        planet : planet ,
+        onToggle : onToggle ,
+        downwardGravity : downwardGravity
     }
     
     Mod.__defineGetter__('mode',() => mode);
@@ -85,6 +98,6 @@ function init(global){
     Mod.__defineSetter__('mode',(value) => mode = value);
     Mod.__defineSetter__('enabled',(value) => enabled = value);
     
+    return Mod;
     
-    return global._Mod = Mod;
-}
+})();

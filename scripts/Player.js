@@ -1,8 +1,5 @@
 
-module.exports = this._Player || init(this);
-
-
-function init(global){
+module.exports = (() => {
     
     const { debug } = require('Logger');
     const Jump = require('Jump');
@@ -85,6 +82,7 @@ function init(global){
     Player.__defineSetter__('onfloor',(value) => onfloor = value);
     Player.__defineSetter__('stamina',(value) => stamina = value);
     
-    return global._Player = Player;
-
-}
+    
+    return Player;
+    
+})();

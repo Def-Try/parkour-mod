@@ -1,9 +1,7 @@
 
-
-module.exports = this._Interface || init(this);
-
-
-function init(global){
+module.exports = (() => {
+    
+    Log.log(Log.LogLevel.none,'Interface Start');
 
     const { button , table } = require('UI');
     const { log , object } = require('Logger');
@@ -11,6 +9,9 @@ function init(global){
     const Player = require('Player');
     const Debug = require('Debug');
     const Mod = require('Mod');
+    
+    
+    Mod.onToggle(updateEnableButton);
     
     
     const onMobile = 
@@ -116,5 +117,7 @@ function init(global){
 
     log('Int',object(Interface));
 
-    return global._Interface = Interface;
-}
+
+    return Interface;
+    
+})();
