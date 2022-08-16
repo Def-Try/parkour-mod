@@ -36,8 +36,6 @@ marked with a ⬆, that is used for jumping.
 
 *The following things can crash your game.*
 
-- Toggling parkour mode in a flying unit
-
 - Falling into the void / outside the map
 
 <br>
