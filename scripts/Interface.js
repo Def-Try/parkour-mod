@@ -1,8 +1,6 @@
 
 module.exports = (() => {
     
-    Log.log(Log.LogLevel.none,'Interface Start');
-
     const { button , table } = require('UI');
     const { log , object } = require('Logger');
     
@@ -108,16 +106,11 @@ module.exports = (() => {
     }
 
 
-    const Interface = {
+    return {
         updateEnableButton : updateEnableButton ,
         updateStamina : updateStamina ,
         build : build ,
         test : 1
     }
 
-    log('Int',object(Interface));
-
-
-    return Interface;
-    
 })();

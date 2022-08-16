@@ -1,6 +1,7 @@
 
 module.exports = (() => {
     
+    const { access } = require('JS');
     const { debug } = require('Logger');
     const Jump = require('Jump');
 
@@ -65,22 +66,24 @@ module.exports = (() => {
         updatePosition : updatePosition ,
         hasStamina : hasStamina ,
         toggleHold : toggleHold ,
+        canParkour : canParkour ,
         unit : unit ,
-        jump : jump ,
-        canParkour : canParkour
+        jump : jump
     }
     
-    Player.__defineGetter__('bjumpvel',() => bjumpvel);
-    Player.__defineGetter__('ajumpvel',() => ajumpvel);
-    Player.__defineGetter__('holding',() => holding);
-    Player.__defineGetter__('onfloor',() => onfloor);
-    Player.__defineGetter__('stamina',() => stamina);
-    
-    Player.__defineSetter__('bjumpvel',(value) => bjumpvel = value);
-    Player.__defineSetter__('ajumpvel',(value) => ajumpvel = value);
-    Player.__defineSetter__('holding',(value) => holding = value);
-    Player.__defineSetter__('onfloor',(value) => onfloor = value);
-    Player.__defineSetter__('stamina',(value) => stamina = value);
+    access(Player,{
+        bjumpvel : () => bjumpvel ,
+        ajumpvel : () => ajumpvel ,
+        holding : () => holding ,
+        onfloor : () => onfloor ,
+        stamina : () => stamina
+    },{
+        bjumpvel : (value) => bjumpvel = value ,
+        ajumpvel : (value) => ajumpvel = value ,
+        holding : (value) => holding = value ,
+        onfloor : (value) => onfloor = value ,
+        stamina : (value) => stamina = value
+    })
     
     
     return Player;

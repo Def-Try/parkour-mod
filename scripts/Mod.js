@@ -4,14 +4,7 @@ module.exports = (() => {
     const { log , object } = require('Logger');
     const Player = require('Player');
 
-    let a = '';
 
-    for(let key in this)
-        a += key + '   ';
-        
-    log('This',a);
-    
-    
     /*
      *  Gravity
      *  0 : Downwards

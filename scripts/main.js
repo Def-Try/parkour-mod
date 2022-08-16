@@ -87,15 +87,9 @@
     log('Loading main content');
 
 
-
-
     function unitOn(unit,type){
         return tileIs(unit.tileX(),unit.tileY(),type);
     }
-
-
-
-
 
     function updateHud(){
 
@@ -148,20 +142,10 @@
         );
     }
 
-
-
-
-
     function gravipad(unit){
         if(unitOn(unit,Blocks.conveyor))
             Gravity.direction = tileAt(lastx,lasty).build.rotation;
     }
-
-
-
-
-
-
 
     function gravityCenter(){
 
@@ -325,7 +309,6 @@
         if(unitOn(unit,Blocks.shockMine))
             holdOn();
     }
-
 
 
     function checkInteractables(unit){
